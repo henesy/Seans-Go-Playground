@@ -28,7 +28,7 @@ y float64 // generic placeholder
 xposz int // position changes
 )
 
-func (s MSegment) (numOf int, direction string) {
+func (s MSegment) drawmap(numOf int, direction string) {
 	if direction == "r" {
 		for n:=0; n < numOf; n+=1 {
 			fmt.Println(s.p1)
@@ -59,6 +59,6 @@ func main() {
 	fmt.Printf("Ending displacement: ")
 	fmt.Scan(&x3)
 
-	fmt.Printf("This: \n%v", x1, x2, x3, y, xposz)
+	fmt.Printf("This: \n%v", x1, x2, x3, y, xposz, seg.p1)
 	
 }
