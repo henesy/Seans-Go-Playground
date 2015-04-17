@@ -4,6 +4,8 @@ import (
 "fmt"
 "svi"
 sc "strconv"
+"os/exec"
+"os"
 )
 
 /* simple blackjack game by sean hinchee */
@@ -14,109 +16,82 @@ max hits: 11 (4xA, 4x2, 3x3) in a hand
 max splits: 4 total hands (3 splits)
 */
 
-var deck = make([]string, 52)
+var deck1 = make([]int, 52)
+//var deck1 [52]int
+var deck2 = make([]int, 52)
 //dboard := make([]string, 50)
 var pboard = make([]string, 50)
 
-func shuffle() {
-    /* this seriously needs a proper algorithm
-    and/or array-ified (pointers?)
-    perhaps shuffle backwards and decrement in a big array?*/
-    var p float64
-    spades := 0
-    diamonds := 0
-    hearts := 0
-    clubs := 0
-    tens := 0
-    jacks := 0
-    queens := 0
-    kings := 0
-    aces := 0
+func initialize_deck_new() {
+    num := 2
+    for a:=0;a<52;a+=1 {
+        deck1[a]=num
+        if num >= 11 {
+            num=2
+        } else {
+            num+=1
+        }
+    }
+    for i:=40;i<52;i+=1 {
+        deck1[i] = 10
+    }
+}
 
-    nums := make([]int, 12)
-    for i:=0; i<12;i+=1{
-        nums[i] = 0
+func initialize_deck_old() {
+    /* initializes deck1 with basic ordered values */
+
+    card_nums := make([]int, 12)
+    for h:=1;h<=11;h+=1 { /* 4 of every kind */
+        card_nums[h] = 4
     }
 
-    z:=0
-    for shuffled:=false;shuffled==false; {
-
-        a := svi.Random(1, 11) //Numbered card selection
-        b := svi.Random(0, 4) //Face card selection; T,j,q,k,A
-        c := svi.Random(0, 4) //Card suit selection; s,d,h,c
-        d := "A" //Left out
-        e := "*" //Right out
-
-        //for y:=0;y<1; {
-            if a == 11 && aces<4 {
-                d = "A"
-                aces+=1
-                //y+=1
-            } else if a == 10 {
-                if b == 0 && tens<4 {
-                    d = "T"
-                    tens+=1
-                    //y+=1
-                } else if b == 1 && jacks<4 {
-                    d = "J"
-                    jacks+=1
-                    //y+=1
-                } else if b == 2 && queens<4 {
-                    d = "Q"
-                    queens+=1
-                    //y+=1
-                } else if b == 3 && kings<4 {
-                    d = "K"
-                    kings+=1
-                    //y+=1
-                } else {
-                    continue
-                }
-            } else {
-                if (nums[a] / a) < 4 {
-                    d = sc.Itoa(a)
-                    nums[a] = nums[a] + a
-                    //y+=1
-                } else {
-                    continue
-                }
-            }
-
-            if c == 0 && spades<13 {
-                e = "s"
-                spades+=1
-                //y+=1
-            } else if c == 1 && diamonds<13 {
-                e = "d"
-                diamonds+=1
-                //y+=1
-            } else if c == 2 && hearts<13 {
-                e = "h"
-                hearts+=1
-                //y+=1
-            } else if c == 3 && clubs<13 {
-                e = "c"
-                clubs+=1
-                //y+=1
-            } else {
-                continue
-            }
-        //}
-
-
-        if z == 52 {
-            break
+    inc := 4.0
+    i := 0
+    check := 0
+    for j:=0;j<52;j+=1 {
+        if i == 13 {
+            inc+=1
+            i=0
         }
 
-        deck[z] = card(d, e)
-        z+=1.0 //does not increment if continue is hit
-        p = ((float64(z)+48)/(52+48))*100
-        go fmt.Printf("\r%0.0f%% Shuffled", p)
+        num := svi.Random(1,12)
+        for t:=false;t==false; {
+            if check >= 52 {break}
+            if card_nums[num] < 0 {
+                /* num is an available number and can be used for deck */
+                t=true
+            } else {
+                if num > 1 {
+                    num=num-1
+                } else {
+                    if num < 11 {
+                        num=num+1
+                    } else {
+                        num=num-1 /* shouldn't be necessary...but still */
+                    }
+                }
+            }
+            check+=1
+        }
 
-        /* choose face/num -> */
-        //ncard = svi.Random(1, 10)
+        deck1[(int(i)+int(inc))] = num
+        i+=1
     }
+}
 
+func shuffle() {
+    /* rand location -> shift rand -> if fail: increment by 1's down then up */
+
+    //loc := svi.Random(1,53)
+    //f_inc := svi.Random(0,(52-loc))
+
+
+}
+
+func deal() {
+    for i:=0;i<2;i+=1 {
+        pboard[i] = sc.Itoa(deck1[i])
+    }
 }
 
 func board(num_card int, cards ...string)() {
@@ -170,22 +145,28 @@ func card(n, i string)(string) {
 
 func main() {
    var in int
+   cmd := exec.Command("clear")
+   cmd.Stdout = os.Stdout
    //c := "╔══╗\n║%s║\n╚══╝\n"
 
    fmt.Print("Would you like instructions? [y/n] ")
    fmt.Scanln(&in)
 
+   cmd.Run()
    n:=2
-   for usrin:="" ; usrin != "quit"; {
-
-       shuffle()
-       pboard[0] = deck[0]
-       pboard[1] = deck[1]
-       go board(n, pboard...)
+   for run:=true;run!=false; {
+       var usrin string
        fmt.Scanln(&usrin)
 
-       //l := card("q", "s")
+       initialize_deck_new()
+       fmt.Print(deck1)
+       //shuffle()
+       deal()
+       board(n, pboard...)
 
-
+       if usrin == "quit" {
+           run=false
+       }
    }
+   fmt.Println("Good Bye!")
 }
