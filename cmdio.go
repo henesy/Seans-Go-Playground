@@ -14,7 +14,7 @@ func main() {
     usrinput := ""
     fmt.Scan(&usrinput) // Scan is insufficient, exits after a "\n"
     runCatFromStdinWorks(populateStdin(usrinput))
-    runCatFromStdinWorks(populateStdin("bbb\n"))
+    //runCatFromStdinWorks(populateStdin("bbb\n"))
 }
 
 func populateStdin(str string) func(io.WriteCloser) {

@@ -14,4 +14,3 @@ func main() {
     pdf.Cell(40, 10, "Hello, world")
     pdf.Output(os.Stdout)
 }
-
