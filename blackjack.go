@@ -16,15 +16,15 @@ max hits: 11 (4xA, 4x2, 3x3) in a hand
 max splits: 4 total hands (3 splits)
 */
 
-var deck1 = make([]int, 52)
+var deck1 = make([]int, 53)
 //var deck1 [52]int
-var deck2 = make([]int, 52)
-//dboard := make([]string, 50)
-var pboard = make([]string, 50)
+var deck2 = make([]int, 53)
+var dboard = make([]string, 53)
+var pboard = make([]string, 53)
 
 func initialize_deck_new() {
     num := 2
-    for a:=0;a<52;a+=1 {
+    for a:=0;a<51;a+=1 {
         deck1[a]=num
         if num >= 11 {
             num=2
@@ -32,7 +32,7 @@ func initialize_deck_new() {
             num+=1
         }
     }
-    for i:=40;i<52;i+=1 {
+    for i:=40;i<51;i+=1 {
         deck1[i] = 10
     }
 }
@@ -48,7 +48,7 @@ func initialize_deck_old() {
     inc := 4.0
     i := 0
     check := 0
-    for j:=0;j<52;j+=1 {
+    for j:=0;j<51;j+=1 {
         if i == 13 {
             inc+=1
             i=0
@@ -81,22 +81,47 @@ func initialize_deck_old() {
 
 func shuffle() {
     /* rand location -> shift rand -> if fail: increment by 1's down then up */
+    for i:=0;i<51;i+=1 {
+        deck2[i] = deck1[i]
+    }
 
-    //loc := svi.Random(1,53)
-    //f_inc := svi.Random(0,(52-loc))
+    pos := svi.Random(0,52)
+    pos_2 := svi.Random(0,52)
+    adj := 4
 
+    for j:=0;j<51;j+=1 {
+
+        num := pos_2 + adj
+        if num > 51 {
+            num = (num-52)
+        }
+        //fmt.Print("DEBUG: ", num, pos)
+        deck2[pos] = deck1[num]
+
+        if pos > 51 {
+            pos=(pos-51)
+        } else {
+            pos+=1
+        }
+
+            pos_2+=1
+    }
 
 }
 
 func deal() {
-    for i:=0;i<2;i+=1 {
-        pboard[i] = sc.Itoa(deck1[i])
+    i:=0
+    for ;i<2;i+=1 {
+        pboard[i] = sc.Itoa(deck2[i])
+    }
+    i=0
+    for j:=3;j<5;j+=1 {
+        dboard[i] = sc.Itoa(deck2[j])
+        i+=1
     }
 }
 
 func board(num_card int, cards ...string)() {
-    fmt.Print("\nPlayer Board\n")
-
     for i:=0; i<80; i+=1 {
         fmt.Printf("―")
     }
@@ -121,8 +146,6 @@ func board(num_card int, cards ...string)() {
     for i:=0; i<num_card; i+=1 {
         fmt.Printf("╚══╝")
     }
-
-    fmt.Print("\nCommand: ")
 }
 
 func card(n, i string)(string) {
@@ -153,16 +176,21 @@ func main() {
    fmt.Scanln(&in)
 
    cmd.Run()
-   n:=2
+   n_d:=2
+   n_p:=2
    for run:=true;run!=false; {
        var usrin string
        fmt.Scanln(&usrin)
 
        initialize_deck_new()
        fmt.Print(deck1)
-       //shuffle()
+       shuffle()
        deal()
-       board(n, pboard...)
+       fmt.Print("\nDealer Board\n")
+       board(n_d, dboard...)
+       fmt.Print("\nPlayer Board\n")
+       board(n_p, pboard...)
+       fmt.Print("\nCommand: ")
 
        if usrin == "quit" {
            run=false
