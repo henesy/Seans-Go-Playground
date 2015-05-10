@@ -36,7 +36,7 @@ func main() {
     var amount int
     flag.IntVar(&amount, "n", 10, "Specify an integer amount of fibonaccis to crunch [2-1477]")
     flag.Parse()
-    if amount < 2 || {
+    if amount < 2 || amount > 1477 {
         fmt.Println("Can only crunch between `> 2` and `< 1477` values.")
         os.Exit(1)
     }
