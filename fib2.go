@@ -34,10 +34,10 @@ func fib(fibchan chan float64, countchan chan int, fibsize int) {
 
 func main() {
     var amount int
-    flag.IntVar(&amount, "n", 10, "Specify an integer amount of fibonaccis to crunch (min 2)")
+    flag.IntVar(&amount, "n", 10, "Specify an integer amount of fibonaccis to crunch [2-1477]")
     flag.Parse()
-    if amount < 2 {
-        fmt.Println("Can only crunch `> 2` values.")
+    if amount < 2 || {
+        fmt.Println("Can only crunch between `> 2` and `< 1477` values.")
         os.Exit(1)
     }
     fibchan := make(chan float64, amount)
