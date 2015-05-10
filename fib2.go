@@ -4,7 +4,7 @@ import (
     "flag"
     "fmt"
     "os"
-    )
+)
 
 //fmt.Printf("%3d: %.0f\n", i+1, fibs[i])
 var count int = 1
