@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+    "flag"
+    "fmt"
+    "os"
+    )
 
 //fmt.Printf("%3d: %.0f\n", i+1, fibs[i])
 var count int = 1
@@ -19,7 +23,7 @@ func fib(fibchan chan float64, countchan chan int, fibsize int) {
     count+=1
     countchan <- count
 
-    for i:=2;i<len(fibs);i+=1 {
+    for i:=2;i<fibsize;i+=1 {
         count=i+1
         nums := fibs[i-2:i]
         fibs[i] = nums[0] + nums[1]
@@ -29,9 +33,13 @@ func fib(fibchan chan float64, countchan chan int, fibsize int) {
 }
 
 func main() {
-    amount:=0
-    fmt.Print("Crunch how many fibonacci numbers?: ")
-    fmt.Scanln(&amount)
+    var amount int
+    flag.IntVar(&amount, "n", 10, "Specify an integer amount of fibonaccis to crunch (min 2)")
+    flag.Parse()
+    if amount < 2 {
+        fmt.Println("Can only crunch `> 2` values.")
+        os.Exit(1)
+    }
     fibchan := make(chan float64, amount)
     countchan := make(chan int, 3)
     printchan := make(chan int, amount)
