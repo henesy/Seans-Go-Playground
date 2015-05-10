@@ -14,7 +14,7 @@ func printer(num1 int, num2 float64, countchan chan int, printchan chan int) {
        printchan<-num1
 }
 
-func fib(fibchan chan float64, countchan chan int, fibsize int) {
+func fib_roundabout(fibchan chan float64, countchan chan int, fibsize int) {
     fibs := make([]float64, fibsize)
     fibs[0],fibs[1] = 0,1
     fibchan <- fibs[0]
@@ -32,6 +32,18 @@ func fib(fibchan chan float64, countchan chan int, fibsize int) {
     }
 }
 
+func fib_classic(fibchan chan float64, countchan chan int, fibsize int) {
+    var fib1, fib2 float64
+    fib1, fib2 = 0, 1
+    countchan <- 1
+    fibchan <- fib1
+    for i:=1;i<fibsize;i+=1 {
+        fib1, fib2 = fib2, fib1+fib2
+        countchan <- i+1
+        fibchan <- fib1
+    }
+}
+
 func main() {
     var amount int
     flag.IntVar(&amount, "n", 10, "Specify an integer amount of fibonaccis to crunch [2-1477]")
@@ -43,12 +55,11 @@ func main() {
     fibchan := make(chan float64, amount)
     countchan := make(chan int, 3)
     printchan := make(chan int, amount)
-    go fib(fibchan, countchan, amount)
-    var cnt int
+    go fib_classic(fibchan, countchan, amount)
     for stahp:=false;(!stahp); {
         select {
         case num, _ := <-fibchan:
-                cnt, _ = <-countchan
+                cnt, _ := <-countchan
                 go printer(cnt, num, countchan, printchan)
                 printcnt:=<-printchan
                 if cnt == amount && printcnt == amount {
