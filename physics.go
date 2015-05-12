@@ -72,12 +72,24 @@ type Surface struct {
 
 /* Objects is the interface for a Physical */
 type Object interface {
-    DeeEquals()
+    DEquals()
 }
 
+/* */
+
 /* d=vi*t + (1/2)*a*t^2 */
-func (p *Physical) DeeEquals() {
+func (p *Physical) DEquals() {
     p.d = p.vi*p.t + 0.5*p.a*(math.Pow(p.t, 2))
+}
+
+/* vf^2 = vi^2 + 2*a*d */
+func (p *Physical) VFSquaredEquals() {
+    p.vf = math.Sqrt(math.Pow(p.vi, 2)+2*p.a*p.d)
+}
+
+/* t = (vf - vi)/a */
+func (p *Physical) TEquals() {
+    p.t = (p.vf - p.vi)/p.a
 }
 
 /* check for error, panic if found */
@@ -86,8 +98,6 @@ func check(err error) {
         panic(err)
     }
 }
-
-// (&thing[i].thing).method()
 
 func main() {
     fmt.Print("\nPlease fill out a number for each value prompted for. If unknown, type \"?\".\n")
@@ -103,28 +113,26 @@ func main() {
     for i:=0;i<num;i+=1 {
         words:=""
         var err error
-        fmt.Print("Object ", i+1, ". \n\n")
+        fmt.Print("\nObject ", i+1, ". \n")
 
         fmt.Print("Initial Vertical Velocity (meters/second): ")
         fmt.Scanln(&words)
         if words != "?" {
             objects[i].vi, err = sc.ParseFloat(words, 64)
             knowns[i].vf=KNOWN
-            fmt.Print(err, "\n")
             check(err)
-            knowns[i].vf=KNOWN
-        } else if words == "?" {
-            knowns[i].vf=UNKNOWN
+            knowns[i].vi=KNOWN
+        } else if words == "?" || words == "" || words == " " {
+            knowns[i].vi=UNKNOWN
         }
 
         fmt.Print("Final Vertical Velocity (m/s): ")
         fmt.Scanln(&words)
         if words != "?" {
             objects[i].vf, err = sc.ParseFloat(words, 64)
-            fmt.Print(err, "\n")
             check(err)
             knowns[i].vf=KNOWN
-        } else if words == "?" {
+        } else if words == "?" || words == "" || words == " " {
             knowns[i].vf=UNKNOWN
         }
 
@@ -132,10 +140,9 @@ func main() {
         fmt.Scanln(&words)
         if words != "?" {
             objects[i].a, err = sc.ParseFloat(words, 64)
-            fmt.Print(err, "\n")
             check(err)
             knowns[i].a=KNOWN
-        } else if words == "?" {
+        } else if words == "?" || words == "" || words == " " {
             knowns[i].a=UNKNOWN
         }
 
@@ -143,10 +150,9 @@ func main() {
         fmt.Scanln(&words)
         if words != "?" {
             objects[i].d, err = sc.ParseFloat(words, 64)
-            fmt.Print(err, "\n")
             check(err)
             knowns[i].d=KNOWN
-        } else if words == "?" {
+        } else if words == "?" || words == "" || words == " " {
             knowns[i].d=UNKNOWN
         }
 
@@ -154,15 +160,27 @@ func main() {
         fmt.Scanln(&words)
         if words != "?" {
             objects[i].t, err = sc.ParseFloat(words, 64)
-            fmt.Print(err, "\n")
             check(err)
             knowns[i].t=KNOWN
-        } else if words == "?" {
+        } else if words == "?" || words == "" || words == " " {
             knowns[i].t=UNKNOWN
         }
 
-        (&objects[i]).DeeEquals()
-        fmt.Print("\n'd' equals: ", objects[i].d, "\n")
+        /* perform calculations to solve for a missing variable; must know at least 3 things */
+        fmt.Print("\nResults: \n")
+        if knowns[i].t == KNOWN && knowns[i].a == KNOWN && knowns[i].vi == KNOWN {
+            (&objects[i]).DEquals()
+            fmt.Print("'d' = ", objects[i].d, "\n")
+        }
+        if knowns[i].vi == KNOWN && knowns[i].a == KNOWN && knowns[i].d == KNOWN {
+            (&objects[i]).VFSquaredEquals()
+            fmt.Print("'vf' = ", objects[i].vf, "\n")
+        }
+        if knowns[i].vi == KNOWN && knowns[i].vf == KNOWN && knowns[i].a == KNOWN {
+            (&objects[i]).TEquals()
+            fmt.Print("'t' = ", objects[i].t, "\n")
+        }
+
     }
 
 }
