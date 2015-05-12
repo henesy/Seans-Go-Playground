@@ -52,9 +52,9 @@ func main() {
 		fmt.Println("Can only crunch between `> 2` and `< 1477` values.")
 		os.Exit(1)
 	}
-	fibchan := make(chan float64, 3)
-	countchan := make(chan int, 3)
-	printchan := make(chan int, amount)
+	fibchan := make(chan float64, 2)
+	countchan := make(chan int, 2)
+	printchan := make(chan int, 2)
 	go fib_classic(fibchan, countchan, amount)
 	for stahp := false; !stahp; {
 		select {
