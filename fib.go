@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+/* inefficient capped fibonacci */
+
 func main() {
    fibs := make([]float32, 100)
    fibs[0]=0.0

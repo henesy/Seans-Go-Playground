@@ -5,7 +5,7 @@ import (
     "flag"
 )
 
-//    fmt.Printf("%3d: %.0f\n", 1, fibs[0])
+/* basic single-threaded capped fibonacci */
 
 func main() {
     var num int

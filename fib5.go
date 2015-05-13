@@ -4,46 +4,35 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"math/big"
 )
 
 var count int = 1
 
-func printer(num1 int, num2 float64, countchan chan int, printchan chan int) {
-	fmt.Printf("%3.0d: %.0f\n", num1, num2)
+func printer(num1 int, num2 big.Int, countchan chan int, printchan chan int) {
+	num3 := num2.String()
+	fmt.Printf("\n%3.0d: %s\n", num1, num3)
 	printchan <- num1
 }
 
-func fib_roundabout(fibchan chan float64, countchan chan int, fibsize int) {
-	fibs := make([]float64, fibsize)
-	fibs[0], fibs[1] = 0, 1
-	fibchan <- fibs[0]
-	countchan <- count
-	fibchan <- fibs[1]
-	count += 1
-	countchan <- count
-
-	for i := 2; i < fibsize; i += 1 {
-		count = i + 1
-		nums := fibs[i-2 : i]
-		fibs[i] = nums[0] + nums[1]
-		countchan <- count
-		fibchan <- fibs[i]
-	}
-}
-
-func fib_classic(fibchan chan float64, countchan chan int, fibsize int) {
-	var fib1, fib2 float64
-	fib1, fib2 = 0, 1
+func fib_classic(fibchan chan big.Int, countchan chan int, fibsize int) {
+	fib1 := big.NewInt(0)
+	fib2 := big.NewInt(1)
 	countchan <- 1
-	fibchan <- fib1
+	fibchan <- *fib1
+
 	for i := 1; i < fibsize; i += 1 {
-		fib1, fib2 = fib2, fib1+fib2
+		temp1, temp2 := new(big.Int), new(big.Int)
+		temp1 = fib2
+		temp2.Add(fib1, fib2)
+		fib1 = temp1
+		fib2 = temp2
 		countchan <- i + 1
-		fibchan <- fib1
+		fibchan <- *fib1
 	}
 }
 
-/* efficient and concurrent capped fibonacci */
+/* efficient fibonacci with "infinite" integer values with concurrency*/
 
 func main() {
 	var amount int
@@ -53,7 +42,7 @@ func main() {
 		fmt.Println("Can only crunch between `> 2` and `< 1477` values.")
 		os.Exit(1)
 	}
-	fibchan := make(chan float64, 2)
+	fibchan := make(chan big.Int, 2)
 	countchan := make(chan int, 2)
 	printchan := make(chan int, 2)
 	go fib_classic(fibchan, countchan, amount)

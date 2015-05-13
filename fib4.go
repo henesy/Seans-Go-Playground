@@ -6,7 +6,6 @@ import (
 	"os"
 )
 
-//fmt.Printf("%3d: %.0f\n", i+1, fibs[i])
 var count int = 0
 
 func printer(num1 *int, num2 *float64, countchan chan *int, printchan chan *int) {
@@ -53,6 +52,8 @@ func fib_classic(fibchan chan *float64, countchan chan *int, fibsize *int) {
 		fibchan <- &fib1
 	}
 }
+
+/* inefficient capped fibonacci with pointers and concurrency */
 
 func main() {
 	var amount int
