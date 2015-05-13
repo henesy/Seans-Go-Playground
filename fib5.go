@@ -22,10 +22,9 @@ func fib_classic(fibchan chan big.Int, countchan chan int, fibsize int) {
 	fibchan <- *fib1
 
 	for i := 1; i < fibsize; i += 1 {
-		temp1, temp2 := new(big.Int), new(big.Int)
-		temp1 = fib2
+		temp2 := new(big.Int)
 		temp2.Add(fib1, fib2)
-		fib1 = temp1
+		fib1 = fib2
 		fib2 = temp2
 		countchan <- i + 1
 		fibchan <- *fib1
