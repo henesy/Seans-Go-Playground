@@ -10,8 +10,7 @@ import (
 var count int = 1
 
 func printer(num1 int, num2 big.Int, countchan chan int, printchan chan int) {
-	num3 := num2.String()
-	fmt.Printf("\n%3.0d: %s\n", num1, num3)
+	fmt.Printf("\n%3.0d: %s\n", num1, num2.String())
 	printchan <- num1
 }
 
