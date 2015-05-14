@@ -41,6 +41,9 @@ type Physical struct {
     mass float64 /* mass of object (kg)*/
     pe float64 /* potential energy (Joules)*/
     ke float64 /* kinetic energy (Joules)*/
+    w float64 /* Work (Joules)*/
+    pow float64 /* Power (Watts)*/
+    p float64 /* Momentum (Newtons?)*/
     dir Direction /* type Direction directional placeholder */
 }
 
@@ -64,6 +67,9 @@ type Knowledge struct {
     mass Num /* mass of object (kg)*/
     pe Num /* potential energy (Joules)*/
     ke Num /* kinetic energy (Joules)*/
+    w Num
+    pow Num
+    p Num
     dir Num /* type Direction directional placeholder */
 }
 
@@ -101,6 +107,29 @@ func (p *Physical) TEquals(knowns *[]Knowledge) {
     p.t = (p.vf - p.vi)/p.a
     (*knowns)[p.i].t = KNOWN
 }
+
+/* F = ma */
+func (p *Physical) Weight(knowns *[]Knowledge) {
+    p.fg = p.m * (-9.8)
+    (*knowns)[p.i].fg = KNOWN
+}
+
+/* F = ma */
+func (p *Physical) Fn(knowns *[]Knowledge) {
+    p.fn = math.Abs(p.fg)
+    (*knowns)[p.i].fn = KNOWN
+}
+
+/* a = F/m */
+
+
+/* m = F/a */
+
+/* W = F*d */
+
+/* d = W/F */
+
+/* P = m * (vf-vi) */
 
 /* check for error, panic if found */
 func check(err error) {

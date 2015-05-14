@@ -8,7 +8,7 @@ import (
 
 /*
 solves for a flag-able number of digits of pi using the Nilakantha series:
-π = 3 + 4/(2*3*4) - 4/(4*5*6) + 4/(6*7*8) - 4/(8*9*10) + 4/(10*11*12)
+π = 3 + 4/(2*3*4) - 4/(4*5*6) + 4/(6*7*8) - 4/(8*9*10) + 4/(10*11*12)...
 */
 type act int
 const (
