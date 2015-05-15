@@ -3,13 +3,14 @@ package main
 import (
     "fmt"
     "math/rand"
+    "time"
 )
 
 /* adds all integers < 100; subs >= 100 */
 
 func main() {
-    rng := rand.New(rand.NewSource(12412509358))
-    rnd := rng.Int()
+    rng := rand.New(rand.NewSource(time.Now().Unix()))
+    rnd := rng.Intn((1500 - 0) + 0)
 
     // value of return
     message := func() string {
