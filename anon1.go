@@ -48,7 +48,8 @@ func main() {
     check(err)
     arr := make([]int, nw)
 
-    for pos, _ := range arr {
+    /* the index value is the default value -- the first */
+    for pos := range arr {
         wrd := ""
         fmt.Print("integer: ")
         fmt.Scanln(&wrd)
