@@ -38,7 +38,7 @@ func check(err error) {
     }
 }
 
-/* adds all integers */
+/* adds all integers < 100; subs >= 100 */
 
 func main() {
     words := ""
