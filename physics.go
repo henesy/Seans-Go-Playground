@@ -67,9 +67,9 @@ type Knowledge struct {
     mass Num /* mass of object (kg)*/
     pe Num /* potential energy (Joules)*/
     ke Num /* kinetic energy (Joules)*/
-    w Num
-    pow Num
-    p Num
+    w Num /* work */
+    pow Num /* power */
+    p Num /* momentum */
     dir Num /* type Direction directional placeholder */
 }
 
@@ -110,8 +110,14 @@ func (p *Physical) TEquals(knowns *[]Knowledge) {
 
 /* F = ma */
 func (p *Physical) Weight(knowns *[]Knowledge) {
-    p.fg = p.m * (-9.8)
+    p.fg = p.mass * (-9.8)
     (*knowns)[p.i].fg = KNOWN
+}
+
+/* (vf - vi)/t = a */
+func (p *Physical) AEquals(knowns *[]Knowledge) {
+    p.a = (p.vf - p.vi) / p.t
+    (*knowns)[p.i].a = KNOWN
 }
 
 /* F = ma */
@@ -121,7 +127,10 @@ func (p *Physical) Fn(knowns *[]Knowledge) {
 }
 
 /* a = F/m */
-
+func (p *Physical) AEqualsFm(knowns *[]Knowledge) {
+    p.a = p.fnet / p.mass
+    (*knowns)[p.i].a = KNOWN
+}
 
 /* m = F/a */
 
@@ -137,6 +146,8 @@ func check(err error) {
         panic(err)
     }
 }
+
+/* automated physics calculator by Sean Hinchee */
 
 func main() {
     var num int
@@ -163,7 +174,7 @@ func main() {
 
         fmt.Print("Initial Vertical Velocity (meters/second): ")
         fmt.Scanln(&words)
-        if words == "?" || words == "" || words == " " {
+        if words == "?" || words == "" || words == " " || words == "\n" {
             knowns[i].vi=UNKNOWN
         } else if words != "?" {
             objects[i].vi, err = sc.ParseFloat(words, 64)
@@ -175,7 +186,7 @@ func main() {
 
         fmt.Print("Final Vertical Velocity (m/s): ")
         fmt.Scanln(&words)
-        if words == "?" || words == "" || words == " " {
+        if words == "?" || words == "" || words == " " || words == "\n" {
             knowns[i].vf=UNKNOWN
         } else if words != "?" {
             objects[i].vf, err = sc.ParseFloat(words, 64)
@@ -185,7 +196,7 @@ func main() {
 
         fmt.Print("Acceleration (meters/second^2): ")
         fmt.Scanln(&words)
-        if words == "?" || words == "" || words == " " {
+        if words == "?" || words == "" || words == " " || words == "\n" {
             knowns[i].a=UNKNOWN
         } else if words != "?" {
             objects[i].a, err = sc.ParseFloat(words, 64)
@@ -195,7 +206,7 @@ func main() {
 
         fmt.Print("Displacement (meters): ")
         fmt.Scanln(&words)
-        if words == "?" || words == "" || words == " " {
+        if words == "?" || words == "" || words == " " || words == "\n" {
             knowns[i].d=UNKNOWN
         } else if words != "?" {
             objects[i].d, err = sc.ParseFloat(words, 64)
@@ -205,12 +216,22 @@ func main() {
 
         fmt.Print("Time (seconds): ")
         fmt.Scanln(&words)
-        if words == "?" || words == "" || words == " " {
+        if words == "?" || words == "" || words == " " || words == "\n" {
             knowns[i].t=UNKNOWN
         } else if words != "?" {
             objects[i].t, err = sc.ParseFloat(words, 64)
             check(err)
             knowns[i].t=KNOWN
+        }
+
+        fmt.Print("Mass (kg): ")
+        fmt.Scanln(&words)
+        if words == "?" || words == "" || words == " " || words == "\n" {
+            knowns[i].mass=UNKNOWN
+        } else if words != "?" {
+            objects[i].mass, err = sc.ParseFloat(words, 64)
+            check(err)
+            knowns[i].mass=KNOWN
         }
 
         /* perform calculations to solve for a missing variable; must know at least 3 things */
@@ -227,7 +248,15 @@ func main() {
             (&objects[i]).TEquals(&knowns)
             fmt.Print("'t' = ", objects[i].t, "\n")
         }
+        if knowns[i].mass == KNOWN {
+            (&objects[i]).Weight(&knowns)
+            fmt.Print("'Weight' = ", objects[i].fg, "\n")
+        }
+        if knowns[i].fg == KNOWN {
+            (&objects[i]).Fn(&knowns)
+            fmt.Print("'Force Normal' = ", objects[i].fn, "\n")
+        }
 
     }
-
+    fmt.Print("Goodbye!\n")
 }
