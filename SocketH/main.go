@@ -8,7 +8,7 @@ import (
 )
 
 //go:generate go build -o shclient client/shclient.go
-//go:generate go build -o socketh 
+//go:generate go build -o socketh
 
 type state int
 const (
@@ -24,6 +24,7 @@ var toRun state = RUN
 var max uint64 = 100
 var connections []net.Conn = make([]net.Conn, max)
 var cState []connected = make([]connected, max)
+var usrNames []string = make([]string, max)
 var numConns, maxConns uint64
 var srvPos uint64 = max+1
 
@@ -83,8 +84,27 @@ func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos u
     srvQuit := string([]byte("!srvquit"))
     defer closeConnection(pos)
 
+    tmpUsrName := make([]byte, 25)
+    strUsrName := ""
+    (*conn).Write([]byte("What is your username?: "))
+    (*conn).Read(tmpUsrName)
+    cnt := 0
+    for i := 0;i < len(tmpUsrName); i += 1 {
+        if tmpUsrName[i] == byte(0) {
+            cnt++
+        }
+        if cnt > 3 {
+            strUsrName = (string(tmpUsrName[:i-cnt+1]))
+        }
+    }
+    usrNames[pos] = strUsrName
+
     addr := (*conn).RemoteAddr()
     fmt.Printf("'%v' connected.\n", addr)
+    fmt.Print([]byte{byte('\n')}, "\n")
+    fmt.Print([]byte(usrNames[pos]), "\n")
+    go messageConns(srvPos, usrNames[pos], " → Connected.")
+
     for {
         srvIn := make([]byte, 512)
         n, err := (*conn).Read(srvIn)
@@ -96,7 +116,7 @@ func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos u
         }
         srvInString := string(srvIn)
         fmt.Printf("'%d' bytes; Data: '%s'; From: '%v'\n", n, srvInString, addr)
-        go messageConns(pos, addr.String(), srvInString)
+        go messageConns(pos, usrNames[pos], srvInString)
         (*conn).Write([]byte("Received!"))
         if srvInString[:len(srvQuit)] == srvQuit {
             messageConns(srvPos, (*conn).LocalAddr().String(),"Closing connection!")
