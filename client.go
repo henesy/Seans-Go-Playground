@@ -9,7 +9,18 @@ import (
     "time"
 )
 
-func readIn(conn net.Conn, runChan chan bool) {
+func printPrompt(pChan chan uint32) {
+    for run := true;run == true; {
+        select {
+        case <- pChan:
+            fmt.Print("\n> ")
+        default:
+        }
+        time.Sleep(20 * time.Millisecond)
+    }
+}
+
+func readIn(conn net.Conn, runChan chan bool, pChan chan uint32) {
     reader := bufio.NewReader(os.Stdin)
     for {
         words, _, _ := reader.ReadLine()
@@ -19,10 +30,13 @@ func readIn(conn net.Conn, runChan chan bool) {
             runChan <- false
             break
         }
+        //pChan <- uint32(1)
+        time.Sleep(20 * time.Millisecond)
     }
 }
 
-func readServer(conn net.Conn, runChan chan bool) {
+func readServer(conn net.Conn, runChan chan bool, pChan chan uint32) {
+    //var ticker uint32 = 0
     for {
         words := make([]byte, 512)
         _, err := conn.Read(words)
@@ -33,21 +47,35 @@ func readServer(conn net.Conn, runChan chan bool) {
         } else {
             check(err)
         }
-        fmt.Print(string(words), "\n")
+
+        blank := []byte{0,0,0,0,0,0}
+        cnt := 0
+        for p, w := range blank {
+            if words[p] == w {
+                cnt++
+            }
+        }
+        if cnt < 4 {
+            fmt.Print(string(words), "\n")
+            pChan <- uint32(1)
+            time.Sleep(20 * time.Millisecond)
+        }
     }
 }
 
 /* dialServer will connect to a pre-selected server */
 func dialServer(target string) {
     runChan := make(chan bool, 1)
+    pChan := make(chan uint32, 1)
     //var words []byte
     conn, err := net.Dial("tcp", target)
     if err != nil {
         fmt.Print(err, "\n")
     }
     /* get our info back from the server */
-    go readServer(conn, runChan)
-    go readIn(conn, runChan)
+    go printPrompt(pChan)
+    go readServer(conn, runChan, pChan)
+    go readIn(conn, runChan, pChan)
 
     for run := true; run == true; {
         select {
@@ -55,7 +83,7 @@ func dialServer(target string) {
             run = false
         default:
         }
-        time.Sleep(1 * time.Second)
+        time.Sleep(20 * time.Millisecond)
     }
 }
 
@@ -74,5 +102,6 @@ func main() {
     words := ""
     fmt.Scanln(&words)
     fmt.Print("Dialing ", words, ";\n")
+    fmt.Print("\n> ")
     dialServer(words)
 }

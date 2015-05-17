@@ -29,7 +29,7 @@ func messageConns(pos uint64, addr, words string) {
     var i uint64
     for i = 0; i < maxConns;i += 1 {
         if cState[i] == CON && i != pos {
-            message := addr + ": " + words
+            message := "\n" + addr + ": " + words
             connections[i].Write([]byte(message))
         }
     }
@@ -96,7 +96,7 @@ func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos u
         go messageConns(pos, addr.String(), srvInString)
         (*conn).Write([]byte("Received!"))
         if srvInString[:len(srvQuit)] == srvQuit {
-            messageConns(srvPos,"\n" + (*conn).LocalAddr().String(),"Closing connection!")
+            messageConns(srvPos, (*conn).LocalAddr().String(),"Closing connection!")
             runTime((*conn).RemoteAddr().String(), rTime)
             runChan <- STOP
         }
