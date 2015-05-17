@@ -13,23 +13,23 @@ const (
 )
 var toRun state = RUN
 
-
+/* acceps connections, kept spinning separate from main() */
 func accepter(ln net.Listener, runChan chan state) {
     for {
         conn, err := ln.Accept()
         check(err)
-        go handleConnection(conn, runChan)
+        go handleConnection(conn, runChan, time.Now())
     }
 }
 
 /* runTime reports the time since startTime began */
-func runTime(startTime time.Time) {
+func runTime(name string, startTime time.Time) {
     endTime := time.Since(startTime)
-    fmt.Print("Ran for: ", endTime, "\n")
+    fmt.Printf("%s ran for: %v", name, endTime)
 }
 
 /* handleConnection reads from data separately */
-func handleConnection(conn net.Conn, runChan chan state) {
+func handleConnection(conn net.Conn, runChan chan state, rTime time.Time) {
     srvQuit := string([]byte("!srvquit"))
 
     addr := conn.RemoteAddr()
@@ -38,7 +38,8 @@ func handleConnection(conn net.Conn, runChan chan state) {
         srvIn := make([]byte, 512)
         n, err := conn.Read(srvIn)
         if err != nil {
-            fmt.Printf("Connection '%v' suffered: '%v'", addr, err)
+            fmt.Printf("Connection '%v' suffered: '%v'\n", addr, err)
+            runTime(conn.RemoteAddr().String(), rTime)
             break
         }
         srvInString := string(srvIn)
@@ -46,6 +47,7 @@ func handleConnection(conn net.Conn, runChan chan state) {
         conn.Write([]byte("Received!\n"))
         if srvInString[:len(srvQuit)] == srvQuit {
             conn.Write([]byte("Closing connection!\n"))
+            runTime(conn.RemoteAddr().String(), rTime)
             runChan <- STOP
         }
     }
@@ -65,7 +67,7 @@ func main() {
 
     /* start a master timer to track how long taskmanager ran */
     startTime := time.Now()
-    defer runTime(startTime)
+    defer runTime("main", startTime)
 
     /* begin the listener on port 9090 */
     ln, err := net.Listen("tcp", ":9090")
@@ -81,5 +83,6 @@ func main() {
             running = false
         default:
         }
+        time.Sleep(1 * time.Second)
     }
 }

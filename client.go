@@ -6,6 +6,7 @@ import (
     "os"
     "bufio"
     "io"
+    "time"
 )
 
 func readIn(conn net.Conn, runChan chan bool) {
@@ -53,6 +54,7 @@ func dialServer(target string) {
             run = false
         default:
         }
+        time.Sleep(1 * time.Second)
     }
 }
 
