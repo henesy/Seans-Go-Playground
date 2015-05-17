@@ -9,6 +9,7 @@ import (
     "time"
 )
 
+/* prints the prompt when or as requested */
 func printPrompt(pChan chan uint32) {
     for run := true;run == true; {
         select {
@@ -20,6 +21,7 @@ func printPrompt(pChan chan uint32) {
     }
 }
 
+/* reads user input and handles it */
 func readIn(conn net.Conn, runChan chan bool, pChan chan uint32) {
     reader := bufio.NewReader(os.Stdin)
     for {
@@ -35,13 +37,14 @@ func readIn(conn net.Conn, runChan chan bool, pChan chan uint32) {
     }
 }
 
+/* reads things from the server and handles them */
 func readServer(conn net.Conn, runChan chan bool, pChan chan uint32) {
     //var ticker uint32 = 0
     for {
         words := make([]byte, 512)
         _, err := conn.Read(words)
         if err == io.EOF {
-            fmt.Print("Disconnected from server.\n")
+            fmt.Print("\nDisconnected from server.\n")
             runChan <- false
             break
         } else {

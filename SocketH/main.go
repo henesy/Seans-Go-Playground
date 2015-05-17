@@ -110,7 +110,7 @@ func check(err error) {
     }
 }
 
-/* Simple task manager written in Go, using concurrency; possibly networking */
+/* Simple chat server written in Go, using concurrency */
 
 func main() {
     var port string
@@ -130,12 +130,12 @@ func main() {
 
     go accepter(ln, runChan)
 
-    for running := true; running == true; {
+    for running := RUN; running == RUN; {
         select {
         case <- runChan:
             close(runChan)
             fmt.Println("STOPPING")
-            running = false
+            running = STOP
         default:
         }
         time.Sleep(1 * time.Second)
