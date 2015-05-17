@@ -4,6 +4,7 @@ import (
     "fmt"
     "net"
     "time"
+    "flag"
 )
 
 type state int
@@ -11,43 +12,92 @@ const (
     RUN state = iota
     STOP
 )
+type connected int
+const (
+    DIS connected = iota
+    CON
+)
 var toRun state = RUN
+var max uint64 = 100
+var connections []net.Conn = make([]net.Conn, max)
+var cState []connected = make([]connected, max)
+var numConns, maxConns uint64
+var srvPos uint64 = max+1
+
+/* messages all connected clients when messages are sent */
+func messageConns(pos uint64, addr, words string) {
+    var i uint64
+    for i = 0; i < maxConns;i += 1 {
+        if cState[i] == CON && i != pos {
+            message := addr + ": " + words
+            connections[i].Write([]byte(message))
+        }
+    }
+}
+
+/* finds open connection position */
+func findOpen()(pos uint64) {
+    var i uint64
+    for i = 0;i < maxConns;i += 1 {
+        if cState[i] == DIS {
+            pos = i
+        }
+    }
+    return
+}
+
+/* close connections */
+func closeConnection(pos uint64) {
+    cState[pos] = DIS
+}
 
 /* acceps connections, kept spinning separate from main() */
 func accepter(ln net.Listener, runChan chan state) {
     for {
-        conn, err := ln.Accept()
-        check(err)
-        go handleConnection(conn, runChan, time.Now())
+        if numConns < maxConns {
+            conn, err := ln.Accept()
+            check(err)
+            pos := findOpen()
+            connections[pos] = conn
+            cState[pos] = CON
+            go handleConnection(&connections[pos], runChan, time.Now(), pos)
+            numConns++
+        } else {
+            ln.Close()
+            fmt.Print("Max connections reached.\n")
+        }
     }
 }
 
 /* runTime reports the time since startTime began */
 func runTime(name string, startTime time.Time) {
     endTime := time.Since(startTime)
-    fmt.Printf("%s ran for: %v", name, endTime)
+    fmt.Printf("%s was connected for: %v\n", name, endTime)
 }
 
 /* handleConnection reads from data separately */
-func handleConnection(conn net.Conn, runChan chan state, rTime time.Time) {
+func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos uint64) {
     srvQuit := string([]byte("!srvquit"))
+    defer closeConnection(pos)
 
-    addr := conn.RemoteAddr()
+    addr := (*conn).RemoteAddr()
     fmt.Printf("'%v' connected.\n", addr)
     for {
         srvIn := make([]byte, 512)
-        n, err := conn.Read(srvIn)
+        n, err := (*conn).Read(srvIn)
         if err != nil {
             fmt.Printf("Connection '%v' suffered: '%v'\n", addr, err)
-            runTime(conn.RemoteAddr().String(), rTime)
+            runTime((*conn).RemoteAddr().String(), rTime)
+            numConns--
             break
         }
         srvInString := string(srvIn)
         fmt.Printf("'%d' bytes; Data: '%s'; From: '%v'\n", n, srvInString, addr)
-        conn.Write([]byte("Received!\n"))
+        go messageConns(pos, addr.String(), srvInString)
+        (*conn).Write([]byte("Received!"))
         if srvInString[:len(srvQuit)] == srvQuit {
-            conn.Write([]byte("Closing connection!\n"))
-            runTime(conn.RemoteAddr().String(), rTime)
+            messageConns(srvPos,"\n" + (*conn).LocalAddr().String(),"Closing connection!")
+            runTime((*conn).RemoteAddr().String(), rTime)
             runChan <- STOP
         }
     }
@@ -63,14 +113,19 @@ func check(err error) {
 /* Simple task manager written in Go, using concurrency; possibly networking */
 
 func main() {
+    var port string
+    flag.Uint64Var(&maxConns, "mc", 30, "Set the max number of connections.")
+    flag.StringVar(&port, "p", ":9090", "Set the port to listen on.")
+    flag.Parse()
     runChan := make(chan state, 1)
+    //messageChan := make(chan string, 3)
 
     /* start a master timer to track how long taskmanager ran */
     startTime := time.Now()
     defer runTime("main", startTime)
 
     /* begin the listener on port 9090 */
-    ln, err := net.Listen("tcp", ":9090")
+    ln, err := net.Listen("tcp", port)
     check(err)
 
     go accepter(ln, runChan)

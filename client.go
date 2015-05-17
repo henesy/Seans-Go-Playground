@@ -23,16 +23,17 @@ func readIn(conn net.Conn, runChan chan bool) {
 }
 
 func readServer(conn net.Conn, runChan chan bool) {
-    words := make([]byte, 512)
     for {
+        words := make([]byte, 512)
         _, err := conn.Read(words)
         if err == io.EOF {
             fmt.Print("Disconnected from server.\n")
             runChan <- false
+            break
         } else {
             check(err)
         }
-        fmt.Print(string(words))
+        fmt.Print(string(words), "\n")
     }
 }
 
