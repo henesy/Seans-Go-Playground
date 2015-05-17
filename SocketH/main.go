@@ -7,6 +7,9 @@ import (
     "flag"
 )
 
+//go:generate go build -o shclient client/shclient.go
+//go:generate go build -o socketh 
+
 type state int
 const (
     RUN state = iota
