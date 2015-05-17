@@ -46,6 +46,7 @@ func main() {
     fmt.Scanln(&words)
     nw, err := sc.Atoi(words)
     check(err)
+    //	foos2 := make([]*Foo, 0) /* if we wanted pointers */
     arr := make([]int, nw)
 
     /* the index value is the default value -- the first */
