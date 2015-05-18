@@ -82,6 +82,7 @@ func runTime(name string, startTime time.Time) {
 /* handleConnection reads from data separately */
 func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos uint64) {
     srvQuit := string([]byte("!srvquit"))
+    exQuit := string([]byte("!quit"))
     defer closeConnection(pos)
 
     tmpUsrName := make([]byte, 25)
@@ -101,14 +102,13 @@ func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos u
 
     addr := (*conn).RemoteAddr()
     fmt.Printf("'%v' connected.\n", addr)
-    fmt.Print([]byte{byte('\n')}, "\n")
-    fmt.Print([]byte(usrNames[pos]), "\n")
-    go messageConns(srvPos, usrNames[pos], " → Connected.")
+    go messageConns(srvPos, usrNames[pos], "→ Connected.")
 
     for {
         srvIn := make([]byte, 512)
         n, err := (*conn).Read(srvIn)
         if err != nil {
+            go messageConns(srvPos, usrNames[pos], "← Disconnected.")
             fmt.Printf("Connection '%v' suffered: '%v'\n", addr, err)
             runTime((*conn).RemoteAddr().String(), rTime)
             numConns--
@@ -116,10 +116,16 @@ func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos u
         }
         srvInString := string(srvIn)
         fmt.Printf("'%d' bytes; Data: '%s'; From: '%v'\n", n, srvInString, addr)
+        if srvInString[:len(exQuit)] == exQuit {
+            go messageConns(srvPos, usrNames[pos], "← Disconnected.")
+            runTime((*conn).RemoteAddr().String(), rTime)
+            numConns--
+            break
+        }
         go messageConns(pos, usrNames[pos], srvInString)
         (*conn).Write([]byte("Received!"))
         if srvInString[:len(srvQuit)] == srvQuit {
-            messageConns(srvPos, (*conn).LocalAddr().String(),"Closing connection!")
+            go messageConns(srvPos, (*conn).LocalAddr().String(),"Closing connection!")
             runTime((*conn).RemoteAddr().String(), rTime)
             runChan <- STOP
         }

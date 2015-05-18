@@ -7,6 +7,7 @@ import (
     "bufio"
     "io"
     "time"
+    "flag"
 )
 
 /* prints the prompt when or as requested */
@@ -67,7 +68,7 @@ func readServer(conn net.Conn, runChan chan bool, pChan chan uint32) {
 }
 
 /* dialServer will connect to a pre-selected server */
-func dialServer(target string) {
+func dialServer(target string, masterChan chan uint32) {
     runChan := make(chan bool, 1)
     pChan := make(chan uint32, 1)
     //var words []byte
@@ -83,6 +84,9 @@ func dialServer(target string) {
     for run := true; run == true; {
         select {
         case <- runChan:
+            close(runChan)
+            close(pChan)
+            masterChan <- 1
             run = false
         default:
         }
@@ -100,11 +104,14 @@ func check(err error) {
 /* Simple raw connection client */
 
 func main() {
-    defer fmt.Print("Goodbye!\n")
-    fmt.Print("Dial address?: ")
     words := ""
-    fmt.Scanln(&words)
+    masterChan := make(chan uint32, 1)
+    flag.StringVar(&words, "a", "localhost:9090", "Set address to dial to for server.")
+    flag.Parse()
+    defer fmt.Print("\nGoodbye!\n")
+
     fmt.Print("Dialing ", words, ";\n")
     fmt.Print("\n> ")
-    dialServer(words)
+    go dialServer(words, masterChan)
+    <- masterChan
 }
