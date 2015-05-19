@@ -5,6 +5,8 @@ import (
     "net"
     "time"
     "flag"
+//    "bytes"
+//    "strings"
 )
 
 /* Version 1.0 Stable */
@@ -38,9 +40,40 @@ func messageConns(pos uint64, addr, words string) {
     for i = 0; i < maxConns;i += 1 {
         if cState[i] == CON && i != pos {
             message := "\n" + addr + ": " + words
+            //message = strings.TrimSpace(message)
             connections[i].Write([]byte(message))
         }
     }
+}
+
+func stripZeroes(in []byte)([]byte) {
+    blank := []byte{0}
+    var i int
+    for i=len(in)-1;i >= 0; i-- {
+        if in[i] != blank[0] {
+            break
+        }
+    }
+    out := make([]byte, i+1)
+    for h:=0; h <= len(out)-1; h++ {
+        out[h] = in[h]
+    }
+    return out
+}
+
+func cleanUp(in []byte)(out []byte) {
+    blank := []byte{0}
+    for i := len(in)-1;i >= 0;i-- {
+        if in[i] != blank[0] {
+            out = make([]byte, len(in)-i)
+            for h:=0;h <= i; h++ {
+                out[h] = in[h]
+            }
+            break
+        }
+    }
+
+    return
 }
 
 /* finds open connection position */
@@ -118,20 +151,26 @@ func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos u
             numConns--
             break
         }
-        srvInString := string(srvIn)
+        //srvInNew := cleanUp(srvIn)
+        srvInNew := stripZeroes(srvIn)
+        srvInString := string(srvInNew)
         fmt.Printf("'%d' bytes; Data: '%s'; From: '%v'\n", n, srvInString, addr)
-        if srvInString[:len(exQuit)] == exQuit {
-            go messageConns(srvPos, usrNames[pos], "← Disconnected.")
-            runTime((*conn).RemoteAddr().String(), rTime)
-            numConns--
-            break
+        if len(srvInString) >= len(exQuit) {
+            if srvInString[:len(exQuit)] == exQuit {
+                go messageConns(srvPos, usrNames[pos], "← Disconnected.")
+                runTime((*conn).RemoteAddr().String(), rTime)
+                numConns--
+                break
+            }
         }
         go messageConns(pos, usrNames[pos], srvInString)
         //(*conn).Write([]byte("Received!"))
-        if srvInString[:len(srvQuit)] == srvQuit {
-            go messageConns(srvPos, (*conn).LocalAddr().String(),"Closing connection!")
-            runTime((*conn).RemoteAddr().String(), rTime)
-            runChan <- STOP
+        if len(srvInString) >= len(srvQuit) {
+            if srvInString[:len(srvQuit)] == srvQuit {
+                go messageConns(srvPos, (*conn).LocalAddr().String(),"Closing connection!")
+                runTime((*conn).RemoteAddr().String(), rTime)
+                runChan <- STOP
+            }
         }
     }
 }

@@ -8,8 +8,12 @@ import (
     "net"
     "io"
     "time"
+//    "strings"
 //sc  "strconv"
 )
+// zero byte: "\x00"
+
+/* Version 1.0 Stable */
 
 /* message buffer to print to screen and possibly scroll in the future */
 var msgs []string = make([]string, 50)
@@ -19,6 +23,20 @@ var posTxt uint32 = 0
 
 var pos, lpos int
 
+func stripZeroes(in []byte)([]byte) {
+    blank := []byte{0}
+    var i int
+    for i=len(in)-1;i >= 0; i-- {
+        if in[i] != blank[0] {
+            break
+        }
+    }
+    out := make([]byte, i+1)
+    for h:=0; h <= len(out)-1; h++ {
+        out[h] = in[h]
+    }
+    return out
+}
 
 /* send a message to the server */
 func sendMsg(conn *net.Conn, newmsg string) {
@@ -36,7 +54,19 @@ func addMsg(newmsg string) {
 
 /* fixes overflowing messages (>78 msgs) */
 func fixMsgs() {
-
+    //should operate only on msgs[0]
+    str := msgs[0]
+    numRunes := utf8.RuneCountInString(str)
+    if posRunes:=0;numRunes > 78 {
+        for posRunes=0;len(str) > 0;posRunes++ {
+            _, size := utf8.DecodeRuneInString(str)
+            str = str[size:]
+            if posRunes > 78 {
+                addMsg(str)
+                break
+            }
+        }
+    }
 }
 
 /* shifts all messages down, discarding the remainder message for loading new msg */
@@ -149,7 +179,8 @@ func readServer(conn net.Conn, runChan chan bool, pChan chan uint32) {
             check(err)
         }
 
-        addMsg(string(words))
+        wordsNew := stripZeroes(words)
+        addMsg(string(wordsNew))
         pChan <- uint32(1)
         time.Sleep(20 * time.Millisecond)
     }
