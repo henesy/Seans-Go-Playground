@@ -7,9 +7,11 @@ import (
     "flag"
 )
 
-//go:generate go build -o shclient client/shclient.go
-//go:generate go build -o tbclient client/tbclient.go
-//go:generate go build -o socketh
+/* Version 1.0 Stable */
+
+//go:generate go build -i -o shclient client/shclient.go
+//go:generate go build -i -o tbclient client/tbclient.go
+//go:generate go build -i -o socketh
 
 type state int
 const (

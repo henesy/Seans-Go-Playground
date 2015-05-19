@@ -10,6 +10,8 @@ import (
     "flag"
 )
 
+/* Version 1.0 Stable */
+
 /* prints the prompt when or as requested */
 func printPrompt(pChan chan uint32) {
     for run := true;run == true; {
