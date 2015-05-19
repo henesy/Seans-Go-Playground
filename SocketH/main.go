@@ -8,6 +8,7 @@ import (
 )
 
 //go:generate go build -o shclient client/shclient.go
+//go:generate go build -o tbclient client/tbclient.go
 //go:generate go build -o socketh
 
 type state int
@@ -123,7 +124,7 @@ func handleConnection(conn *net.Conn, runChan chan state, rTime time.Time, pos u
             break
         }
         go messageConns(pos, usrNames[pos], srvInString)
-        (*conn).Write([]byte("Received!"))
+        //(*conn).Write([]byte("Received!"))
         if srvInString[:len(srvQuit)] == srvQuit {
             go messageConns(srvPos, (*conn).LocalAddr().String(),"Closing connection!")
             runTime((*conn).RemoteAddr().String(), rTime)
