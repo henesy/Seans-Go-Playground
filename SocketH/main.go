@@ -9,6 +9,7 @@ import (
 
 /* Version 1.0 Stable */
 
+//go:generate go get -u github.com/nsf/termbox-go
 //go:generate go build -i -o shclient client/shclient.go
 //go:generate go build -i -o tbclient client/tbclient.go
 //go:generate go build -i -o socketh

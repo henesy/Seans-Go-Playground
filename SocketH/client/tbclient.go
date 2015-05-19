@@ -36,6 +36,7 @@ func addMsg(newmsg string) {
 
 /* fixes overflowing messages (>78 msgs) */
 func fixMsgs() {
+
 }
 
 /* shifts all messages down, discarding the remainder message for loading new msg */
