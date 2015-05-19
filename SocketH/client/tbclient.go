@@ -231,8 +231,11 @@ func main() {
 
                     } else if ev.Key == termbox.KeyBackspace2 || ev.Key == termbox.KeyBackspace {
                         txt[posTxt] = byte(' ')
-                        txt[posTxt-1] = byte(' ')
-                        posTxt-=1
+                        if posTxt > 0 {
+                            txt[posTxt-1] = byte(' ')
+                            posTxt-=1
+                        }
+
                     } else {
                         letr, _ := utf8.DecodeRuneInString(key)
                         txt[posTxt] = byte(letr)
