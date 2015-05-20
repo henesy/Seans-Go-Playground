@@ -93,7 +93,7 @@ func backTrace() {
 }
 
 /* move the snake head; invokes shiftParts() */
-func moveSnake(runChan chan dir, drawChan chan bool) {
+func moveSnake(runChan chan dir, drawChan chan dir) {
 	var d dir
 	for run := true;run == true; {
 		select {
@@ -117,7 +117,7 @@ func moveSnake(runChan chan dir, drawChan chan bool) {
 				snake[0].X++
 			}
 		}
-		drawChan <- true
+		drawChan <- d
 	}
 }
 
@@ -130,7 +130,7 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 }
 
 /* draws the screen/updates */
-func draw(w, h int, drawChan chan bool) {
+func draw(w, h int, drawChan chan dir) {
 	for {
 		defer termbox.Flush()
 
@@ -154,8 +154,12 @@ func draw(w, h int, drawChan chan bool) {
 		checkTarget()
 
 		termbox.Flush()
-		<- drawChan
-		time.Sleep(35 * time.Millisecond)
+		d := <- drawChan
+		if d == U || d == D {
+			time.Sleep(60 * time.Millisecond)
+		} else {
+			time.Sleep(35 * time.Millisecond)
+		}
 	}
 }
 
@@ -169,7 +173,7 @@ func main() {
 		fmt.Print("Your score: ", score, "\n")
 	}()
 	runChan := make(chan dir, 1)
-	drawChan := make(chan bool, 1)
+	drawChan := make(chan dir, 1)
 	err := termbox.Init()
 	if err != nil {
 		fmt.Println(err)
