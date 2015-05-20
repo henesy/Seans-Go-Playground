@@ -6,6 +6,7 @@ import (
 	sc "strconv"
 	"svi"
 	"time"
+	"unicode/utf8"
 )
 
 var w, h, score, length int = 0, 0, 0, 1
@@ -51,7 +52,7 @@ func checkTarget() {
 		length++
 		score++
 		eaten = true
-		target.X, target.Y = svi.Random(0, 80), svi.Random(1, 24)
+		target.X, target.Y = svi.Random(0, w), svi.Random(1, h)
 
 	} else {
 		if eaten != true {
@@ -60,106 +61,32 @@ func checkTarget() {
 	}
 }
 
-/* moves the non-head ([0]) parts of the snake */
-func shiftParts_old(d dir) {
-	var num int = length
-	if eaten == true {
-		//shift only [1]
-		num = 1
-		eaten = false
-	} else {
-		if length > 1 {
-			num = length
-		} else {
-			num = length
-		}
-
-	}
-	for i := 1; i < num; i++ {
-		if d == U && (snake[i].Y-1 > 0) {
-			if snake[i-1].X < snake[i].X {
-				snake[i].X--
-			} else if snake[i-1].X > snake[i].X {
-				snake[i].X++
-			} else if snake[i-1].Y < snake[i].Y {
-				snake[i].Y--
-			} else if snake[i-1].Y > snake[i].Y {
-				snake[i].Y++
-			}
-
-		} else if d == D && (snake[i].Y+1 < h) {
-			if snake[i-1].X < snake[i].X {
-				snake[i].X--
-			} else if snake[i-1].X > snake[i].X {
-				snake[i].X++
-			} else if snake[i-1].Y > snake[i].Y {
-				snake[i].Y++
-			} else if snake[i-1].Y < snake[i].Y {
-				snake[i].Y--
-			}
-
-		} else if d == L && (snake[i].X-1 > -1) {
-			if snake[i-1].Y < snake[i].Y {
-				snake[i].Y--
-			} else if snake[i-1].Y > snake[i].Y {
-				snake[i].Y++
-			} else if snake[i-1].X > snake[i].X {
-				snake[i].X++
-			} else if snake[i-1].X < snake[i].X {
-				snake[i].X--
-			}
-
-		} else if d == R && (snake[i].X+1 < w) {
-			if snake[i-1].Y < snake[i].Y {
-				snake[i].Y--
-			} else if snake[i-1].Y > snake[i].Y {
-				snake[i].Y++
-			} else if snake[i-1].X < snake[i].X {
-				snake[i].X--
-			} else if snake[i-1].X > snake[i].X {
-				snake[i].X++
+func backTrace() {
+    for i := length-1; i > 0; i-- {
+            snake[i].X = snake[i-1].X
+            snake[i].Y = snake[i-1].Y
+    }
+	/* catch overlap and bug out */
+	for i := 0; i < length; i++ {
+		for j := 0; j < length; j++ {
+			if ((i-1 != j && j-1 != i) && i != j) && (snake[i].X == snake[j].X && snake[i].Y == snake[j].Y) {
+				running = false
+				i = length+1
+				break
 			}
 		}
 	}
-}
-
-func shiftParts(oldX, oldY int) {
-    var num int = length
-    if eaten == true {
-        //shift only [1]
-        num = 1
-        eaten = false
-    } else {
-        if length > 1 {
-            num = length
-        } else {
-            num = length
-        }
-
-    }
-    var oneX, oneY int = 0, 0
-    if num > 1 {
-        oneX, oneY = snake[1].X, snake[1].Y
-        snake[1].X, snake[1].Y = oldX, oldY
-    }
-
-    if num > 2 {
-
-        for i := length; i > 1; i-- {
-            if i > 2 {
-                snake[i].X = snake[i-1].X
-                snake[i].Y = snake[i-1].Y
-            } else {
-                snake[2].X, snake[2].Y = oneX, oneY
-            }
-
-        }
-    }
 }
 
 /* move the snake head; invokes shiftParts() */
 func moveSnake(d dir) {
-	oldX, oldY := snake[0].X, snake[0].Y
+	//oldX, oldY := snake[0].X, snake[0].Y
+    if eaten == false {
+        backTrace()
+    } else {
+        eaten = false
+    }
+
     if d == U && (snake[0].Y-1 > 0) {
 		snake[0].Y--
 	} else if d == D && (snake[0].Y+1 < h) {
@@ -169,20 +96,6 @@ func moveSnake(d dir) {
 	} else if d == R && (snake[0].X+1 < w) {
 		snake[0].X++
 	}
-
-	for h, v1 := range snake {
-		for i, v2 := range snake {
-			if h != i && ((h != 0) || (i != 0)) && (h < length) && (i < length) {
-				if v1.X == v2.X && v1.Y == v2.Y {
-					running = false
-					break
-				}
-			}
-		}
-	}
-
-	//shiftParts(d)
-        shiftParts(oldX, oldY)
 }
 
 /* prints to pos x, y */
@@ -206,14 +119,19 @@ func draw(w, h int) {
 			tbPrint(v.X, v.Y, termbox.ColorRed, termbox.ColorBlue, "■")
 			//tbPrint(35, 0, termbox.ColorWhite, termbox.ColorBlue, "Pos Snake: "+sc.Itoa(p))
 		}
-		tbPrint(1, 0, termbox.ColorWhite, termbox.ColorBlue, "Score: "+sc.Itoa(score))
+		scorestr := "Score: " + sc.Itoa(score)
+		sssize := utf8.RuneCountInString(scorestr)
+		tbPrint(1, 0, termbox.ColorWhite, termbox.ColorBlack, scorestr)
+		for x := sssize + 1; x < w; x++ {
+			tbPrint(x, 0, termbox.ColorBlack, termbox.ColorBlack, "█")
+		}
 		//fixes the printing of extras...which shouldn't happen, but w/e
-		tbPrint(0, 0, termbox.ColorBlue, termbox.ColorBlue, "■")
+		tbPrint(0, 0, termbox.ColorBlack, termbox.ColorBlack, "■")
 		tbPrint(target.X, target.Y, termbox.ColorCyan, termbox.ColorBlue, string(target.r))
 		checkTarget()
 
 		termbox.Flush()
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 
@@ -232,7 +150,7 @@ func main() {
 	termbox.SetInputMode(termbox.InputAlt)
 	w, h = termbox.Size()
 	snake[0].X, snake[0].Y = w/2, h/2
-	target.X, target.Y, target.r = 20, 8, ''
+	target.X, target.Y, target.r = svi.Random(0, w), svi.Random(1, h), ''
 	termbox.Clear(termbox.ColorBlack, termbox.ColorBlue)
 	termbox.Flush()
 	go draw(w, h)
@@ -248,7 +166,7 @@ func main() {
 				termbox.Flush()
 			} else if ev.Key == termbox.KeyEnter {
 				/* pause button */
-				for r := true; r == true; {
+                for r := true; r == true; {
 					switch ev := termbox.PollEvent(); ev.Type {
 					case termbox.EventKey:
 						if ev.Key == termbox.KeyEnter {
