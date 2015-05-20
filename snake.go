@@ -223,13 +223,29 @@ func main() {
 					}
 				}
 			} else if key == "w" {
-				go moveSnake(U)
+                if snake[0].Y-1 > 0 {
+                    go moveSnake(U)
+                } else {
+                    running = false
+                }
 			} else if key == "a" {
-				go moveSnake(L)
+                if snake[0].X-1 > -1 {
+                    go moveSnake(L)
+                } else {
+                    running = false
+                }
 			} else if key == "d" {
-				go moveSnake(R)
+                if snake[0].X+1 < w {
+                    go moveSnake(R)
+                } else {
+                    running = false
+                }
 			} else if key == "s" {
-				go moveSnake(D)
+                if snake[0].Y+1 < h {
+                    go moveSnake(D)
+                } else {
+                    running = false
+                }
 			}
 		default:
 		}
