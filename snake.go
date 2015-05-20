@@ -51,7 +51,7 @@ func checkTarget() {
 		length++
 		score++
 		eaten = true
-		target.X, target.Y = svi.Random(0, 81), svi.Random(1, 25)
+		target.X, target.Y = svi.Random(0, 80), svi.Random(1, 24)
 
 	} else {
 		if eaten != true {
@@ -61,7 +61,7 @@ func checkTarget() {
 }
 
 /* moves the non-head ([0]) parts of the snake */
-func shiftParts(d dir) {
+func shiftParts_old(d dir) {
 	var num int = length
 	if eaten == true {
 		//shift only [1]
@@ -123,9 +123,44 @@ func shiftParts(d dir) {
 	}
 }
 
+func shiftParts(oldX, oldY int) {
+    var num int = length
+    if eaten == true {
+        //shift only [1]
+        num = 1
+        eaten = false
+    } else {
+        if length > 1 {
+            num = length
+        } else {
+            num = length
+        }
+
+    }
+    var oneX, oneY int = 0, 0
+    if num > 1 {
+        oneX, oneY = snake[1].X, snake[1].Y
+        snake[1].X, snake[1].Y = oldX, oldY
+    }
+
+    if num > 2 {
+
+        for i := length; i > 1; i-- {
+            if i > 2 {
+                snake[i].X = snake[i-1].X
+                snake[i].Y = snake[i-1].Y
+            } else {
+                snake[2].X, snake[2].Y = oneX, oneY
+            }
+
+        }
+    }
+}
+
 /* move the snake head; invokes shiftParts() */
 func moveSnake(d dir) {
-	if d == U && (snake[0].Y-1 > 0) {
+	oldX, oldY := snake[0].X, snake[0].Y
+    if d == U && (snake[0].Y-1 > 0) {
 		snake[0].Y--
 	} else if d == D && (snake[0].Y+1 < h) {
 		snake[0].Y++
@@ -146,7 +181,8 @@ func moveSnake(d dir) {
 		}
 	}
 
-	shiftParts(d)
+	//shiftParts(d)
+        shiftParts(oldX, oldY)
 }
 
 /* prints to pos x, y */
@@ -168,7 +204,7 @@ func draw(w, h int) {
 				break
 			}
 			tbPrint(v.X, v.Y, termbox.ColorRed, termbox.ColorBlue, "■")
-			tbPrint(35, 0, termbox.ColorWhite, termbox.ColorBlue, "Pos Snake: "+sc.Itoa(p))
+			//tbPrint(35, 0, termbox.ColorWhite, termbox.ColorBlue, "Pos Snake: "+sc.Itoa(p))
 		}
 		tbPrint(1, 0, termbox.ColorWhite, termbox.ColorBlue, "Score: "+sc.Itoa(score))
 		//fixes the printing of extras...which shouldn't happen, but w/e
