@@ -7,9 +7,12 @@ import (
 	"svi"
 	"time"
 	"unicode/utf8"
+	"flag"
 )
 
 var w, h, score, length int = 0, 0, 0, 1
+
+var difficulty uint64
 
 type dir int
 
@@ -32,7 +35,16 @@ type sprite struct {
 
 var target sprite
 
-var snake = make([]sprite, 100)
+var snake = make([]sprite, 800)
+
+func newTarget() {
+	target.X, target.Y = svi.Random(0, w), svi.Random(1, h)
+	for i := 0; i < length; i++ {
+		if snake[i].X == target.X && snake[i].Y == target.Y {
+			newTarget()
+		}
+	}
+}
 
 /* has to check if player is on targets; repopulate targets */
 func checkTarget() {
@@ -52,7 +64,7 @@ func checkTarget() {
 		length++
 		score++
 		eaten = true
-		target.X, target.Y = svi.Random(0, w), svi.Random(1, h)
+		newTarget()
 
 	} else {
 		if eaten != true {
@@ -62,39 +74,50 @@ func checkTarget() {
 }
 
 func backTrace() {
-    for i := length-1; i > 0; i-- {
-            snake[i].X = snake[i-1].X
-            snake[i].Y = snake[i-1].Y
-    }
 	/* catch overlap and bug out */
+	/* maybe change to just check impacts with [0] */
 	for i := 0; i < length; i++ {
 		for j := 0; j < length; j++ {
-			if ((i-1 != j && j-1 != i) && i != j) && (snake[i].X == snake[j].X && snake[i].Y == snake[j].Y) {
+			if ((i-1 != j && j-1 != i && j+1 != i && i+1 != j) && i != j) && (snake[i].X == snake[j].X && snake[i].Y == snake[j].Y) {
 				running = false
 				i = length+1
 				break
 			}
 		}
 	}
+
+	for i := length-1; i > 0; i-- {
+            snake[i].X = snake[i-1].X
+            snake[i].Y = snake[i-1].Y
+    }
 }
 
 /* move the snake head; invokes shiftParts() */
-func moveSnake(d dir) {
-	//oldX, oldY := snake[0].X, snake[0].Y
-    if eaten == false {
-        backTrace()
-    } else {
-        eaten = false
-    }
+func moveSnake(runChan chan dir, drawChan chan bool) {
+	var d dir
+	for run := true;run == true; {
+		select {
+		case d = <- runChan:
 
-    if d == U && (snake[0].Y-1 > 0) {
-		snake[0].Y--
-	} else if d == D && (snake[0].Y+1 < h) {
-		snake[0].Y++
-	} else if d == L && (snake[0].X-1 > -1) {
-		snake[0].X--
-	} else if d == R && (snake[0].X+1 < w) {
-		snake[0].X++
+		default:
+			//oldX, oldY := snake[0].X, snake[0].Y
+		    if eaten == false {
+		        backTrace()
+		    } else {
+		        eaten = false
+		    }
+
+		    if d == U && (snake[0].Y-1 > 0) {
+				snake[0].Y--
+			} else if d == D && (snake[0].Y+1 < h) {
+				snake[0].Y++
+			} else if d == L && (snake[0].X-1 > -1) {
+				snake[0].X--
+			} else if d == R && (snake[0].X+1 < w) {
+				snake[0].X++
+			}
+		}
+		drawChan <- true
 	}
 }
 
@@ -107,7 +130,7 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 }
 
 /* draws the screen/updates */
-func draw(w, h int) {
+func draw(w, h int, drawChan chan bool) {
 	for {
 		defer termbox.Flush()
 
@@ -131,18 +154,22 @@ func draw(w, h int) {
 		checkTarget()
 
 		termbox.Flush()
-		time.Sleep(20 * time.Millisecond)
+		<- drawChan
+		time.Sleep(35 * time.Millisecond)
 	}
 }
 
 /* A basic snake game implemented in termbox-go and Golang */
 
 func main() {
+	flag.Uint64Var(&difficulty, "d", 1, "Set difficulty [1+]")
+	flag.Parse()
 	defer func() {
 		termbox.Close()
 		fmt.Print("Your score: ", score, "\n")
 	}()
-
+	runChan := make(chan dir, 1)
+	drawChan := make(chan bool, 1)
 	err := termbox.Init()
 	if err != nil {
 		fmt.Println(err)
@@ -153,8 +180,10 @@ func main() {
 	target.X, target.Y, target.r = svi.Random(0, w), svi.Random(1, h), ''
 	termbox.Clear(termbox.ColorBlack, termbox.ColorBlue)
 	termbox.Flush()
-	go draw(w, h)
+	go draw(w, h, drawChan)
 	termbox.Flush()
+	runChan <- R
+	go moveSnake(runChan, drawChan)
 
 	for running = true; running == true; {
 		switch ev := termbox.PollEvent(); ev.Type {
@@ -178,25 +207,25 @@ func main() {
 				}
 			} else if key == "w" {
                 if snake[0].Y-1 > 0 {
-                    go moveSnake(U)
+					runChan <- U
                 } else {
                     running = false
                 }
 			} else if key == "a" {
                 if snake[0].X-1 > -1 {
-                    go moveSnake(L)
+					runChan <- L
                 } else {
                     running = false
                 }
 			} else if key == "d" {
                 if snake[0].X+1 < w {
-                    go moveSnake(R)
+					runChan <- R
                 } else {
                     running = false
                 }
 			} else if key == "s" {
                 if snake[0].Y+1 < h {
-                    go moveSnake(D)
+					runChan <- D
                 } else {
                     running = false
                 }
