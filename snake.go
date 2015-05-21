@@ -40,7 +40,7 @@ var snake = make([]sprite, 800)
 func newTarget() {
 	target.X, target.Y = svi.Random(0, w), svi.Random(1, h)
 	for i := 0; i < length; i++ {
-		if snake[i].X == target.X && snake[i].Y == target.Y {
+		if snake[i].X == target.X && snake[i].Y == target.Y && (target.X != 0 && target.Y != 0) && (target.X != w-1 && target.Y != h-1){
 			newTarget()
 		}
 	}
