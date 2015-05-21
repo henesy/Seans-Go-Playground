@@ -93,11 +93,15 @@ func backTrace() {
 }
 
 /* move the snake head; invokes shiftParts() */
-func moveSnake(runChan chan dir, drawChan chan dir) {
+func moveSnake(runChan chan dir, drawChan chan dir, pauseChan chan bool) {
 	var d dir
 	for run := true;run == true; {
 		select {
 		case d = <- runChan:
+		case b := <- pauseChan:
+			for b == true {
+				b = <- pauseChan
+			}
 
 		default:
 			//oldX, oldY := snake[0].X, snake[0].Y
@@ -174,6 +178,7 @@ func main() {
 	}()
 	runChan := make(chan dir, 1)
 	drawChan := make(chan dir, 1)
+	pauseChan := make(chan bool, 1)
 	err := termbox.Init()
 	if err != nil {
 		fmt.Println(err)
@@ -187,7 +192,8 @@ func main() {
 	go draw(w, h, drawChan)
 	termbox.Flush()
 	runChan <- R
-	go moveSnake(runChan, drawChan)
+
+	go moveSnake(runChan, drawChan, pauseChan)
 
 	for running = true; running == true; {
 		switch ev := termbox.PollEvent(); ev.Type {
@@ -200,9 +206,11 @@ func main() {
 			} else if ev.Key == termbox.KeyEnter {
 				/* pause button */
                 for r := true; r == true; {
+					pauseChan <- true
 					switch ev := termbox.PollEvent(); ev.Type {
 					case termbox.EventKey:
 						if ev.Key == termbox.KeyEnter {
+							pauseChan <- false
 							r = false
 							break
 						}
