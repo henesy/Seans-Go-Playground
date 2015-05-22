@@ -37,6 +37,8 @@ var target sprite
 
 var snake = make([]sprite, 800)
 
+var shortWait, longWait func()
+
 func newTarget() {
 	target.X, target.Y = svi.Random(0, w), svi.Random(1, h)
 	for i := 0; i < length; i++ {
@@ -73,7 +75,7 @@ func checkTarget() {
 	}
 }
 
-func backTrace() {
+func expandSnake() {
 	/* catch overlap and bug out */
 	/* maybe change to just check impacts with [0] */
 	for i := 0; i < length; i++ {
@@ -106,7 +108,7 @@ func moveSnake(moveChan chan dir, drawChan chan dir, pauseChan chan bool) {
 		default:
 			//oldX, oldY := snake[0].X, snake[0].Y
 		    if eaten == false {
-		        backTrace()
+		        expandSnake()
 		    } else {
 		        eaten = false
 		    }
@@ -160,9 +162,9 @@ func draw(w, h int, drawChan chan dir) {
 		termbox.Flush()
 		d := <- drawChan
 		if d == U || d == D {
-			time.Sleep(60 * time.Millisecond)
+			longWait()
 		} else {
-			time.Sleep(35 * time.Millisecond)
+			shortWait()
 		}
 	}
 }
@@ -170,8 +172,19 @@ func draw(w, h int, drawChan chan dir) {
 /* A basic snake game implemented in termbox-go and Golang */
 
 func main() {
-	flag.Uint64Var(&difficulty, "d", 1, "Set difficulty [1+]")
+	flag.Uint64Var(&difficulty, "d", 1, "Set difficulty [1-3]")
 	flag.Parse()
+	if difficulty == 1 {
+		longWait = func() { time.Sleep(80 * time.Millisecond) }
+		shortWait = func() { time.Sleep(55 * time.Millisecond) }
+	} else if difficulty == 2 {
+		longWait = func() { time.Sleep(60 * time.Millisecond) }
+		shortWait = func() { time.Sleep(35 * time.Millisecond) }
+	} else if difficulty >= 3 {
+		longWait = func() { time.Sleep(40 * time.Millisecond) }
+		shortWait = func() { time.Sleep(15 * time.Millisecond) }
+	}
+
 	defer func() {
 		termbox.Close()
 		fmt.Print("Your score: ", score, "\n")
