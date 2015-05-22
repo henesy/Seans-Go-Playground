@@ -93,11 +93,11 @@ func backTrace() {
 }
 
 /* move the snake head; invokes shiftParts() */
-func moveSnake(runChan chan dir, drawChan chan dir, pauseChan chan bool) {
+func moveSnake(moveChan chan dir, drawChan chan dir, pauseChan chan bool) {
 	var d dir
 	for run := true;run == true; {
 		select {
-		case d = <- runChan:
+		case d = <- moveChan:
 		case b := <- pauseChan:
 			for b == true {
 				b = <- pauseChan
@@ -176,7 +176,7 @@ func main() {
 		termbox.Close()
 		fmt.Print("Your score: ", score, "\n")
 	}()
-	runChan := make(chan dir, 1)
+	moveChan := make(chan dir, 4)
 	drawChan := make(chan dir, 1)
 	pauseChan := make(chan bool, 1)
 	err := termbox.Init()
@@ -191,9 +191,9 @@ func main() {
 	termbox.Flush()
 	go draw(w, h, drawChan)
 	termbox.Flush()
-	runChan <- R
+	moveChan <- R
 
-	go moveSnake(runChan, drawChan, pauseChan)
+	go moveSnake(moveChan, drawChan, pauseChan)
 
 	for running = true; running == true; {
 		switch ev := termbox.PollEvent(); ev.Type {
@@ -219,25 +219,25 @@ func main() {
 				}
 			} else if key == "w" {
                 if snake[0].Y-1 > 0 {
-					runChan <- U
+					moveChan <- U
                 } else {
                     running = false
                 }
 			} else if key == "a" {
                 if snake[0].X-1 > -1 {
-					runChan <- L
+					moveChan <- L
                 } else {
                     running = false
                 }
 			} else if key == "d" {
                 if snake[0].X+1 < w {
-					runChan <- R
+					moveChan <- R
                 } else {
                     running = false
                 }
 			} else if key == "s" {
                 if snake[0].Y+1 < h {
-					runChan <- D
+					moveChan <- D
                 } else {
                     running = false
                 }
