@@ -190,7 +190,7 @@ func main() {
 		fmt.Print("Your score: ", score, "\n")
 	}()
 	moveChan := make(chan dir, 4)
-	drawChan := make(chan dir, 1)
+	drawChan := make(chan dir)
 	pauseChan := make(chan bool, 1)
 	err := termbox.Init()
 	if err != nil {
