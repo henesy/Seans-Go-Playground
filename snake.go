@@ -189,7 +189,7 @@ func main() {
 		termbox.Close()
 		fmt.Print("Your score: ", score, "\n")
 	}()
-	moveChan := make(chan dir, 4)
+	moveChan := make(chan dir, 3)
 	drawChan := make(chan dir)
 	pauseChan := make(chan bool, 1)
 	err := termbox.Init()
