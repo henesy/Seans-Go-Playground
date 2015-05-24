@@ -15,8 +15,8 @@ type Calculator interface {
 
 /* deals with slices of ints and shifts their contents */
 type Adjuster interface {
-    ShiftBack() []int
-    ShiftForwards() []int
+    ShiftLeft() []int
+    ShiftRight() []int
     Flip() []int
     Remix() []int
 }
@@ -80,7 +80,7 @@ func (c Circle) Density() float64 {
 }
 
 /* methods to adjust slices or arrays */
-func (a Iarr) ShiftForwards() Iarr {
+func (a Iarr) ShiftRight() Iarr {
     newArr := make(Iarr, len(a))
     for i := 0; i < len(a)-1; i++ {
         newArr[i+1] = a[i]
@@ -88,7 +88,7 @@ func (a Iarr) ShiftForwards() Iarr {
     return newArr
 }
 
-func (a Iarr) ShiftBack() Iarr {
+func (a Iarr) ShiftLeft() Iarr {
     newArr := make(Iarr, len(a))
     for i := len(a)-1; i > 0; i-- {
         newArr[i-1] = a[i]
@@ -112,7 +112,7 @@ func (a Iarr) Remix() Iarr {
     return a
 }
 
-func (a Farr) ShiftBack() Farr {
+func (a Farr) ShiftLeft() Farr {
     newArr := make(Farr, len(a))
     for i := len(a)-1; i > 0; i-- {
         newArr[i-1] = a[i]
@@ -120,7 +120,7 @@ func (a Farr) ShiftBack() Farr {
     return newArr
 }
 
-func (a Farr) ShiftForwards() Farr {
+func (a Farr) ShiftRight() Farr {
     newArr := make(Farr, len(a))
     for i := 0; i < len(a)-1; i++ {
         newArr[i+1] = a[i]
@@ -134,7 +134,7 @@ func (a Farr) Flip() Farr {
     for i := 0; i < len(a); i++ {
             newArr[i] = a[h]
             h--
-    }
+
     return newArr
 }
 
@@ -148,10 +148,10 @@ func (a Farr) Remix() Farr {
 
 func main() {
     fmt.Print(arr1, arr2, arr3, arr4, "\n")
-    arr1 = []int(Iarr(arr1).ShiftBack())
-    arr2 = []int(Iarr(arr2).ShiftForwards())
+    arr1 = []int(Iarr(arr1).ShiftLeft())
+    arr2 = []int(Iarr(arr2).ShiftRight())
     arr3 = []int(Iarr(arr3).Flip())
-    arr4 = []float64(Farr(arr4).ShiftBack())
+    arr4 = []float64(Farr(arr4).ShiftLeft())
     arr4 = []float64(Farr(arr4).Flip())
     fmt.Print(arr1, arr2, arr3, arr4, "\n")
     c := Circle{4, 6}
