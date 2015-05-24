@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "math"
+    "reflect"
 )
 
 /* takes structs in to calculate certain aspects; can be 1d-3d */
@@ -24,6 +25,7 @@ type Adjuster interface {
 /* types must be named; []int and []float64 are unnamed types, thus we name them */
 type Iarr []int
 type Farr []float64
+type wild interface {}
 
 /* exact defintions of circle may be 1d-3d; sphere or circle */
 type Circle struct {
@@ -134,13 +136,36 @@ func (a Farr) Flip() Farr {
     for i := 0; i < len(a); i++ {
             newArr[i] = a[h]
             h--
-
+    }
     return newArr
 }
 
 func (a Farr) Remix() Farr {
     //not implemented either
     return a
+}
+
+/* bounces a variable back to source */
+func bounce(a wild) wild {
+
+    return a
+}
+
+func detect(a interface {})(actype reflect.Type, newa interface{}) {
+    switch a.(type) {
+    case int:
+        newa, _ = a.(int)
+    case float64:
+        newa, _ = a.(float64)
+    case float32:
+        newa, _ = a.(float32)
+    case string:
+        newa, _ = a.(string)
+    case []int:
+        newa, _ = a.([]int)
+    }
+    actype = reflect.TypeOf(a)
+    return
 }
 
 
@@ -163,4 +188,9 @@ func main() {
     sd := s.Density()
     fmt.Print(ac, as, cc, sd, "\n")
 
+    o := bounce(arr1)
+    fmt.Print("Bounced o: ", o, "\n")
+
+    arr2type, narr2 := detect(arr2)
+    fmt.Print("Arr2 Detected: ", arr2type.String(), " ", narr2, "\n")
 }
