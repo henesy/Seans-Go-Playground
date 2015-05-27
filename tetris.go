@@ -91,8 +91,6 @@ func draw(w, h int, drawChan chan dir, screen [][]occ) {
 			}
 		}
 
-
-
 		/* draw screen[][] */
 		x, y := 1, 1
 		for i := 0; i < len(screen); i++ {
@@ -113,6 +111,9 @@ func draw(w, h int, drawChan chan dir, screen [][]occ) {
 				}
 			}
 		}
+
+		/* draw next block and dashboard */
+		
 
 
 		termbox.Flush()
