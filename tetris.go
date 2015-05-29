@@ -8,6 +8,8 @@ import (
 
 var score, w, h int
 var running bool
+var hei int = 20
+var wid int = 20
 //var screen [23][10]occ
 
 type dir int
@@ -19,19 +21,18 @@ const (
 	S
 )
 
-type occ int
-
-const (
-    UN occ = iota
-    OC
-)
-
 type block struct {
     x int
     y int
 }
 
-type Shape [9]block
+type Shape struct {
+	blk [9]block
+	clr termbox.Attribute
+	shp TyShape
+}
+
+type TyShape rune
 
 type o Shape
 type i Shape
@@ -45,18 +46,37 @@ type Shaper interface {
 	rotateRight()
 	moveLeft()
 	moveRight()
-	initShape()
+	init()
+	export()
 }
 
+/* methods to satisfy Shaper() interface for type Shape */
 
-/* sets all of screen to unoccupied */
-func unOccupy(screen [][]occ) {
-	for i := 0; i < len(screen); i++ {
-		for j := 0; j < len(screen[i]); j++ {
-			screen[i][j] = UN
-		}
-	}
+/* rotates block left */
+func (shp *s) rotateLeft() {
+
 }
+
+func (shp *s) rotateRight() {
+
+}
+
+func (shp *s) moveLeft() {
+
+}
+
+func (shp *s) moveRight() {
+
+}
+
+func (shp *s) init() {
+
+}
+
+func (shp *s) export() {
+
+}
+
 
 /* prints to pos x, y */
 func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
@@ -66,7 +86,7 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 	}
 }
 
-func draw(w, h int, drawChan chan dir, screen [][]occ) {
+func draw(w, h int, drawChan chan dir, screen []Shape) {
 	for {
 		defer termbox.Flush()
 
@@ -74,18 +94,18 @@ func draw(w, h int, drawChan chan dir, screen [][]occ) {
 
 
 		/* draw box frames */
-		/* corners for screen */
+		/* corners for screen 20x20*/
 		tbPrint(0, 0, termbox.ColorWhite, termbox.ColorBlack, "╔")
-		tbPrint(0, len(screen)+1, termbox.ColorWhite, termbox.ColorBlack, "╚")
-		tbPrint(len(screen[0])+1, 0, termbox.ColorWhite, termbox.ColorBlack, "╗")
-		tbPrint(len(screen[0])+1, len(screen)+1, termbox.ColorWhite, termbox.ColorBlack, "╝")
+		tbPrint(0, hei+1, termbox.ColorWhite, termbox.ColorBlack, "╚")
+		tbPrint(wid+1, 0, termbox.ColorWhite, termbox.ColorBlack, "╗")
+		tbPrint(wid+1, hei+1, termbox.ColorWhite, termbox.ColorBlack, "╝")
 		/* bars for screen */
-		for y := 0; y < len(screen)+2; y++ {
-			for x := 0; x < len(screen[0])+2; x++ {
-				if (y == 0 || y == len(screen)+1) && (x != 0 && x != len(screen[0])+1) {
+		for y := 0; y < hei+2; y++ {
+			for x := 0; x < wid+2; x++ {
+				if (y == 0 || y == hei+1) && (x != 0 && x != wid+1) {
 					tbPrint(x, y, termbox.ColorWhite, termbox.ColorBlack, "═")
 				}
-				if (x == 0 || x == len(screen[0])+1) && (y != 0 && y != len(screen)+1) {
+				if (x == 0 || x == wid+1) && (y != 0 && y != hei+1) {
 					tbPrint(x, y, termbox.ColorWhite, termbox.ColorBlack, "║")
 				}
 			}
@@ -93,28 +113,16 @@ func draw(w, h int, drawChan chan dir, screen [][]occ) {
 
 		/* draw screen[][] */
 		x, y := 1, 1
-		for i := 0; i < len(screen); i++ {
-			for j := 0; j < len(screen[i]); j++ {
-				tbPrint(x, y, termbox.ColorBlue, termbox.ColorBlack, "*")
+		for i := 0; i < hei; i++ {
+			for j := 0; j < wid; j++ {
+				/* print blocks */
+
+
 				x++
 			}
 			y++
 			x = 1
 		}
-		/* draw occupancy in screen[][] */
-		//screen[0][0] = OC
-		//screen[len(screen)-1][len(screen[0])-1] = OC
-		for y := 0; y < len(screen); y++ {
-			for x := 0; x < len(screen[y]); x++ {
-				if screen[y][x] == OC {
-					tbPrint(x+1, y+1, termbox.ColorRed, termbox.ColorBlack, "█")
-				}
-			}
-		}
-
-		/* draw next block and dashboard */
-		
-
 
 		termbox.Flush()
         time.Sleep(60 * time.Millisecond)
@@ -139,13 +147,11 @@ func main() {
 	termbox.SetInputMode(termbox.InputAlt)
 	w, h = termbox.Size()
 
-	//22 tall, 20 wide, top 2 will be hidden
-	var screen [][]occ = make([][]occ, 22)
-	for i := 0; i < len(screen); i++ {
-		screen[i] = make([]occ, 20)
-	}
-	unOccupy(screen)
-	//hiddenScreen := screen[0:2]
+
+	screen := make([]Shape, 1, 20)
+	/* init the interface as "s"  shape initially (rand() later) */
+	shpr := Shaper(new(s))
+	shpr.init()
 
 
 	termbox.Clear(termbox.ColorBlack, termbox.ColorBlack)
