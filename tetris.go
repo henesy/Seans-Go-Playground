@@ -47,7 +47,7 @@ type Shaper interface {
 	moveLeft()
 	moveRight()
 	init()
-	export()
+	export() Shape
 }
 
 /* methods to satisfy Shaper() interface for type Shape */
@@ -73,8 +73,10 @@ func (shp *s) init() {
 
 }
 
-func (shp *s) export() {
+func (shp *s) export() Shape {
 
+	//temp until actual values are to be set
+	return Shape(*shp)
 }
 
 
@@ -152,6 +154,7 @@ func main() {
 	/* init the interface as "s"  shape initially (rand() later) */
 	shpr := Shaper(new(s))
 	shpr.init()
+	screen[0] = shpr.export()
 
 
 	termbox.Clear(termbox.ColorBlack, termbox.ColorBlack)
