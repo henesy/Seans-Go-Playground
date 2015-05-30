@@ -12,13 +12,22 @@ var hei int = 20
 var wid int = 20
 //var screen [23][10]occ
 
-type dir int
+type key int
 
 const (
-	W dir = iota
+	W key = iota
 	A
 	D
 	S
+)
+
+type dir int
+
+const (
+	UP key = iota
+	DN
+	LE
+	RI
 )
 
 type block struct {
@@ -74,8 +83,6 @@ func (shp *s) init() {
 }
 
 func (shp *s) export() Shape {
-
-	//temp until actual values are to be set
 	return Shape(*shp)
 }
 
@@ -139,7 +146,7 @@ func main() {
 		termbox.Close()
 		fmt.Print("Your score: ", score, "\n")
 	}()
-	runChan := make(chan dir, 1)
+	runChan := make(chan key, 1)
 	drawChan := make(chan dir, 1)
 
     err := termbox.Init()
