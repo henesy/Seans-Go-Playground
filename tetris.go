@@ -79,6 +79,29 @@ func (shp *s) moveRight() {
 }
 
 func (shp *s) init() {
+	// top row
+	(*shp).blk[0].x = 0
+	(*shp).blk[0].y = 0
+	(*shp).blk[1].x = 3
+	(*shp).blk[1].y = 1
+	(*shp).blk[2].x = 4
+	(*shp).blk[2].y = 1
+	// middle row
+	(*shp).blk[3].x = 2
+	(*shp).blk[3].y = 2
+	(*shp).blk[4].x = 3
+	(*shp).blk[4].y = 2
+	(*shp).blk[5].x = 0
+	(*shp).blk[5].y = 0
+	// bottom row
+	(*shp).blk[6].x = 0
+	(*shp).blk[6].y = 0
+	(*shp).blk[7].x = 0
+	(*shp).blk[7].y = 0
+	(*shp).blk[8].x = 0
+	(*shp).blk[8].y = 0
+
+
 
 }
 
@@ -125,7 +148,13 @@ func draw(w, h int, drawChan chan dir, screen []Shape) {
 		for i := 0; i < hei; i++ {
 			for j := 0; j < wid; j++ {
 				/* print blocks */
-
+				for k := 0; k < len(screen); k++ { //number of shapes
+					for l := 0; l < len(screen[k].blk); l++ { //number of blocks
+						if screen[k].blk[l].x > 0 && screen[k].blk[l].y > 0 {
+							tbPrint(screen[k].blk[l].x, screen[k].blk[l].y, screen[k].clr, termbox.ColorBlack, "█")
+						}
+					}
+				}
 
 				x++
 			}
