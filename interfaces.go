@@ -163,8 +163,13 @@ func detect(a interface {})(actype reflect.Type, newa interface{}) {
         newa, _ = a.(string)
     case []int:
         newa, _ = a.([]int)
+    case []float64:
+        newa, _ = a.([]float64)
+    default:
+        newa = a
     }
     actype = reflect.TypeOf(a)
+    //var test actype.Kind()
     return
 }
 
