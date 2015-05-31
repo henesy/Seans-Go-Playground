@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"github.com/nsf/termbox-go"
     "time"
+//	"svi"
 )
 
+var scrn *[]Shape
 var score, w, h int
+var curShape *Shaper
+var curPos int
 var running bool
 var hei int = 20
 var wid int = 20
+var txt string
 //var screen [23][10]occ
 
 type key int
@@ -19,6 +24,8 @@ const (
 	A
 	D
 	S
+	O
+	P
 )
 
 type dir int
@@ -38,7 +45,7 @@ type block struct {
 type Shape struct {
 	blk [9]block
 	clr termbox.Attribute
-	shp TyShape
+	dir int
 }
 
 type TyShape rune
@@ -55,30 +62,119 @@ type Shaper interface {
 	rotateRight()
 	moveLeft()
 	moveRight()
+	dropDown()
 	init()
 	export() Shape
 }
 
-/* methods to satisfy Shaper() interface for type Shape */
+/* methods to satisfy Shaper() interface for type Shape
+	0 = first (up)
+	1 = second (right)
+	2 = third (down)
+	3 = fourth (left)
+*/
 
 /* rotates block left */
 func (shp *s) rotateLeft() {
 
 }
 
+/* rotates block right */
 func (shp *s) rotateRight() {
 
 }
 
+/* moves the block to the left */
 func (shp *s) moveLeft() {
+	// safety checks needed
+	safe := true
+	// 0, 3, 6 is border
+	fut := (*shp)
 
+	for i := 0; i < len(fut.blk); i++ {
+		if fut.blk[i].x != 0 {
+			fut.blk[i].x -= 1
+		}
+	}
+
+	if (*shp).blk[0].x == 1 || (*shp).blk[3].x == 1 || (*shp).blk[6].x == 1 {
+		safe = false
+	}
+
+	for p, v := range (*scrn) {
+		if p != curPos {
+			for i := 0; i < len(v.blk); i++ {
+				if (v.blk[i].x != 0 && v.blk[i].x == fut.blk[i].x) && (v.blk[i].y != 0 && v.blk[i].y == fut.blk[i].y) {
+					safe = false
+				}
+			}
+		}
+
+	}
+
+	if safe == true {
+		for i := 0; i < len(shp.blk); i++ {
+			if (*shp).blk[i].x > 0 {
+				(*shp).blk[i].x -= 1
+			}
+		}
+	}
+	txt = "LEFT"
 }
 
+/* moves the block to the right */
 func (shp *s) moveRight() {
+	// safety checks needed
+	safe := true
+	fut := (*shp)
+
+
+	if (*shp).blk[2].x == wid || (*shp).blk[5].x == wid || (*shp).blk[8].x == wid {
+		safe = false
+	}
+
+	for i := 0; i < len(fut.blk); i++ {
+		if fut.blk[i].x != 0 {
+			fut.blk[i].x += 1
+		}
+	}
+
+	if (*shp).blk[2].x == wid || (*shp).blk[5].x == wid || (*shp).blk[8].x == wid {
+		safe = false
+	}
+
+	for p, v := range (*scrn) {
+		if p != curPos {
+			for i := 0; i < len(v.blk); i++ {
+				if (v.blk[i].x != 0 && v.blk[i].x == fut.blk[i].x) && (v.blk[i].y != 0 && v.blk[i].y == fut.blk[i].y) {
+					safe = false
+				}
+			}
+		}
+
+	}
+
+	if safe == true {
+		for i := 0; i < len(shp.blk); i++ {
+			if (*shp).blk[i].x > 0 {
+
+				(*shp).blk[i].x += 1
+			}
+		}
+	}
+	txt = "RIGHT"
+}
+
+/* drops the block down at double the rate */
+func (shp *s) dropDown() {
 
 }
 
+/* initializes the shape at the default '0' or 'UP' state */
 func (shp *s) init() {
+	(*shp).clr = termbox.ColorGreen
+	(*shp).dir = 0
+
 	// top row
 	(*shp).blk[0].x = 0
 	(*shp).blk[0].y = 0
@@ -100,15 +196,34 @@ func (shp *s) init() {
 	(*shp).blk[7].y = 0
 	(*shp).blk[8].x = 0
 	(*shp).blk[8].y = 0
-
-
-
 }
 
+/* converts the current specific shape to a generic shape */
 func (shp *s) export() Shape {
 	return Shape(*shp)
 }
 
+
+/* picks a semi-random shape to provide the user next */
+/*func randShape()(newShpr Shaper) {
+	n := svi.Random(1, 7)
+
+	if n == 1 {
+		newShpr = Shaper(new(o))
+	} else if n == 2 {
+		newShpr = Shaper(new(i))
+	} else if n == 3 {
+		newShpr = Shaper(new(s))
+	} else if n == 4 {
+		newShpr = Shaper(new(z))
+	} else if n == 5 {
+		newShpr = Shaper(new(l))
+	} else if n == 6 {
+		newShpr = Shaper(new(j))
+	}
+
+	return
+}*/
 
 /* prints to pos x, y */
 func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
@@ -118,6 +233,28 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 	}
 }
 
+/* handles input from the user via termbox-go */
+func manageInput(screen []Shape, drawChan chan dir, runChan chan key) {
+	for {
+		select {
+		case k := <- runChan:
+			if k == D {
+				(*curShape).moveRight()
+			}
+			if k == A {
+				(*curShape).moveLeft()
+			}
+			if k == S {
+				(*curShape).dropDown()
+			}
+			screen[curPos] = (*curShape).export()
+		default:
+		}
+		<- drawChan
+	}
+}
+
+/* draws and refreshes the screen */
 func draw(w, h int, drawChan chan dir, screen []Shape) {
 	for {
 		defer termbox.Flush()
@@ -144,7 +281,7 @@ func draw(w, h int, drawChan chan dir, screen []Shape) {
 		}
 
 		/* draw screen[][] */
-		x, y := 1, 1
+		//x, y := 1, 1
 		for i := 0; i < hei; i++ {
 			for j := 0; j < wid; j++ {
 				/* print blocks */
@@ -155,15 +292,17 @@ func draw(w, h int, drawChan chan dir, screen []Shape) {
 						}
 					}
 				}
-
-				x++
+				//x++
 			}
-			y++
-			x = 1
+			//y++
+			//x = 1
 		}
+
+		tbPrint(25, 5, termbox.ColorWhite, termbox.ColorBlack, txt)
 
 		termbox.Flush()
         time.Sleep(60 * time.Millisecond)
+		drawChan <- 0
 	}
 }
 
@@ -185,16 +324,19 @@ func main() {
 	termbox.SetInputMode(termbox.InputAlt)
 	w, h = termbox.Size()
 
-
-	screen := make([]Shape, 1, 20)
+	//array of blocks on the screen
+	screen := make([]Shape, 1, 40)
+	scrn = &screen
 	/* init the interface as "s"  shape initially (rand() later) */
 	shpr := Shaper(new(s))
 	shpr.init()
 	screen[0] = shpr.export()
-
+	curPos = 0
+	curShape = &shpr
 
 	termbox.Clear(termbox.ColorBlack, termbox.ColorBlack)
 	termbox.Flush()
+	go manageInput(screen, drawChan, runChan)
 	go draw(w, h, drawChan, screen)
 	termbox.Flush()
 	runChan <- S
@@ -220,13 +362,17 @@ func main() {
 					}
 				}
 			} else if key == "w" {
-					runChan <- W
+				runChan <- W
 			} else if key == "a" {
-					runChan <- A
+				runChan <- A
 			} else if key == "d" {
-					runChan <- D
+				runChan <- D
 			} else if key == "s" {
-					runChan <- S
+				runChan <- S
+			} else if key == "o" {
+				runChan <- O
+			} else if key == "p" {
+				runChan <- P
 			}
 		default:
 		}
