@@ -14,7 +14,7 @@ var curPos int
 var running bool
 var hei int = 20
 var wid int = 20
-var txt string
+var dirTxt string
 //var screen [23][10]occ
 
 type key int
@@ -101,15 +101,16 @@ func (shp *s) moveLeft() {
 		safe = false
 	}
 
+	B1:
 	for p, v := range (*scrn) {
 		if p != curPos {
 			for i := 0; i < len(v.blk); i++ {
 				if (v.blk[i].x != 0 && v.blk[i].x == fut.blk[i].x) && (v.blk[i].y != 0 && v.blk[i].y == fut.blk[i].y) {
 					safe = false
+					break B1
 				}
 			}
 		}
-
 	}
 
 	if safe == true {
@@ -119,7 +120,7 @@ func (shp *s) moveLeft() {
 			}
 		}
 	}
-	txt = "LEFT"
+	dirTxt = "LEFT"
 }
 
 /* moves the block to the right */
@@ -143,26 +144,26 @@ func (shp *s) moveRight() {
 		safe = false
 	}
 
+	B1:
 	for p, v := range (*scrn) {
 		if p != curPos {
 			for i := 0; i < len(v.blk); i++ {
 				if (v.blk[i].x != 0 && v.blk[i].x == fut.blk[i].x) && (v.blk[i].y != 0 && v.blk[i].y == fut.blk[i].y) {
 					safe = false
+					break B1
 				}
 			}
 		}
-
 	}
 
 	if safe == true {
 		for i := 0; i < len(shp.blk); i++ {
 			if (*shp).blk[i].x > 0 {
-
 				(*shp).blk[i].x += 1
 			}
 		}
 	}
-	txt = "RIGHT"
+	dirTxt = "RIGHT"
 }
 
 /* drops the block down at double the rate */
@@ -298,7 +299,7 @@ func draw(w, h int, drawChan chan dir, screen []Shape) {
 			//x = 1
 		}
 
-		tbPrint(25, 5, termbox.ColorWhite, termbox.ColorBlack, txt)
+		tbPrint(25, 5, termbox.ColorWhite, termbox.ColorBlack, dirTxt)
 
 		termbox.Flush()
         time.Sleep(60 * time.Millisecond)
