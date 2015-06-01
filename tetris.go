@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"github.com/nsf/termbox-go"
     "time"
+	"reflect"
 //	"svi"
 )
 
 var scrn *[]Shape
 var score, w, h int
 var curShape *Shaper
+var nextShape Shaper
 var curPos int
 var running bool
 var hei int = 20
@@ -234,6 +236,25 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 	}
 }
 
+/* draws a termbox-go box through given coordinates */
+func drawBox(x1, y1, x2, y2 int) {
+	tbPrint(x1, y1, termbox.ColorWhite, termbox.ColorBlack, "╔")
+	tbPrint(x1, y2, termbox.ColorWhite, termbox.ColorBlack, "╚")
+	tbPrint(x2, y1, termbox.ColorWhite, termbox.ColorBlack, "╗")
+	tbPrint(x2, y2, termbox.ColorWhite, termbox.ColorBlack, "╝")
+	/* bars for screen */
+	for y := y1; y < y2+1; y++ {
+		for x := x1; x < x2+1; x++ {
+			if (y == y1 || y == y2) && (x != x1 && x != x2) {
+				tbPrint(x, y, termbox.ColorWhite, termbox.ColorBlack, "═")
+			}
+			if (x == x1 || x == x2) && (y != y1 && y != y2) {
+				tbPrint(x, y, termbox.ColorWhite, termbox.ColorBlack, "║")
+			}
+		}
+	}
+}
+
 /* handles input from the user via termbox-go */
 func manageInput(screen []Shape, drawChan chan dir, runChan chan key) {
 	for {
@@ -299,6 +320,27 @@ func draw(w, h int, drawChan chan dir, screen []Shape) {
 			//x = 1
 		}
 
+		/* extra boxes & dashboard */
+		/* next block box */
+		tbPrint(23, 0, termbox.ColorWhite, termbox.ColorBlack, "Next Block")
+		drawBox(25, 1, 30, 4)
+
+		shapeToDraw := func() Shape {
+			typeOfNextShape := reflect.TypeOf(nextShape)
+
+			dirTxt = typeOfNextShape.String()
+			// detect type -> shift x+distance (from .init()) -> copy shape -> print nShape
+
+			return nextShape.export()
+		}()
+
+		for i := 0; i < 9; i++ {
+			if shapeToDraw.blk[i].x != 0 && shapeToDraw.blk[i].y != 0 {
+				tbPrint(shapeToDraw.blk[i].x, shapeToDraw.blk[i].y, shapeToDraw.clr, termbox.ColorBlack, "█")
+			}
+		}
+
+		/* wrap up loop */
 		tbPrint(25, 5, termbox.ColorWhite, termbox.ColorBlack, dirTxt)
 
 		termbox.Flush()
@@ -308,7 +350,7 @@ func draw(w, h int, drawChan chan dir, screen []Shape) {
 }
 
 
-/* small termbox tetris game */
+/* a small termbox tetris game utilizing termbox-go */
 
 func main() {
     defer func() {
@@ -334,6 +376,8 @@ func main() {
 	screen[0] = shpr.export()
 	curPos = 0
 	curShape = &shpr
+	// temporary while randShape() is non-commissioned
+	nextShape = shpr
 
 	termbox.Clear(termbox.ColorBlack, termbox.ColorBlack)
 	termbox.Flush()
