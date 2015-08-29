@@ -30,7 +30,8 @@ func fib_classic(fibchan chan big.Int, countchan chan int, fibsize int) {
 	}
 }
 
-/* efficient fibonacci with "infinite" integer values with concurrency*/
+/* efficient fibonacci with "infinite" integer values with concurrency
+ modified from fib5 to print only the final number for speed, convenience, and great justice */
 
 func main() {
 	var amount int
