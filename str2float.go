@@ -28,6 +28,10 @@ func main() {
 		rN := float64(r - '0')
 		fmt.Println(rN)
 		
+		if rN < 0 || rN > 9 {
+			panic("Invalid string input")
+		}
+		
 		if postdec {
 			rN *= decz
 			decz *= 0.1
