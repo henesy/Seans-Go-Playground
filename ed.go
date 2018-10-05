@@ -13,6 +13,9 @@ func main() {
 	for {
 		in := ""
 		fmt.Scanln(&in)
+		if in == "q" {
+			break
+		}
 		fmt.Println("?")
 	}
 }
