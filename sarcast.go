@@ -22,7 +22,7 @@ func main() {
 			break
 		}
 		
-		if !(r == ' ' || r == '\t' || r == '\n') {
+		if !unicode.IsSpace(r) {
 			if U {
 				r = unicode.ToUpper(r)
 				U = false
