@@ -1,24 +1,78 @@
 package main
 
 import (
+	"fmt"
 	"bufio"
 	"os"
 	"io"
 	"unicode"
 	"flag"
+	"strings"
+	"github.com/atotto/clipboard"
 )
 
 var (
 	tiny	bool	// make tiny text y/n
+	clip	bool	// copy to clipboard y/n
 )
+
+// Output string hack for StringWriter
+var outStr	string
+
+// For use with clipboard functionality
+type StringWriter struct {
+	// Look up ☺
+}
+
+// Implement io.Writer
+func (sw StringWriter) Write(p []byte) (n int, err error) {
+	outStr += string(p)
+	
+	return len(p), nil
+}
+
+// Copy to clipboard
+func copy() {
+	err := clipboard.WriteAll(outStr)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to copy to clipboard --", err)
+		os.Exit(1)
+	}
+}
 
 // Sarcastify text — WhAt dO YoU MeAn
 func main() {
 	flag.BoolVar(&tiny, "t", false, "Make tiny text instead")
+	flag.BoolVar(&clip, "c", false, "Copy to clipboard")
 	flag.Parse()
+	args := flag.Args()
 
-	r := bufio.NewReader(os.Stdin)
-	w := bufio.NewWriter(os.Stdout)
+	var from io.Reader
+	var to io.Writer
+
+	// Set input reader
+	if len(args) > 0 {
+		var str string
+		for _, s := range args {
+			str += s + " "
+		}
+		from = strings.NewReader(str + "\n")
+	} else {
+		from = os.Stdin
+	}
+
+	// Set output writer
+	if clip {
+		var b StringWriter
+		to = b
+		defer copy()
+	} else {
+		to = os.Stdout
+	}
+	
+	r := bufio.NewReader(from)
+
+	w := bufio.NewWriter(to)
 
 	if tiny {
 		tinify(r, w)
