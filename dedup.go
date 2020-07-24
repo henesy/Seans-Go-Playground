@@ -149,20 +149,26 @@ func main() {
 		reversed[hash] = path
 	}
 
+	// Test if there even are any duplicates
+	if len(dupes) < 1 {
+		fmt.Println("No duplicates found, nothing to delete, exiting.")
+		return
+	}
+
 	// Inform the user
 	fmt.Println("KEEPING:")
 	for _, path := range reversed {
 		fmt.Println("	", path)
 	}
 
-	fmt.Println("DELETING:")
+	fmt.Println("\n\nDELETING:")
 	for _, pair := range dupes {
 		fmt.Printf("\t%v\t→\t%v\n", pair.dupe, pair.of)
 	}
 
 	// Confirm with the user
 	var in string
-	fmt.Print("Delete duplicates? [y/n]: ")
+	fmt.Print("\n\nDelete duplicates? [y/n]: ")
 	fmt.Scanln(&in)
 
 	if in != "y" {
