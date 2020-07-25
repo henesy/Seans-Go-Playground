@@ -168,7 +168,7 @@ func main() {
 
 	// Confirm with the user
 	var in string
-	fmt.Print("\n\nDelete duplicates? [y/n]: ")
+	fmt.Printf("\n\nDelete %v duplicates? [y/n]: ", len(dupes))
 	fmt.Scanln(&in)
 
 	if in != "y" {
